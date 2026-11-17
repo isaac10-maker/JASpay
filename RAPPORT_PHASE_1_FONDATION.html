@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JASpay — Rapport Phase 1 — Fondation</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+            padding: 24px;
+        }
+        .max-w { max-width: 900px; margin: 0 auto; }
+        .header {
+            background: #0f172a;
+            color: #fff;
+            padding: 32px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 4px solid #0ea5e9;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { color: #cbd5e1; font-size: 15px; }
+        .content {
+            background: #fff;
+            padding: 32px;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+        }
+        h2 {
+            font-size: 20px;
+            margin: 24px 0 12px;
+            color: #0f172a;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 6px;
+        }
+        h3 { font-size: 16px; margin: 18px 0 8px; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
+        th { background: #f1f5f9; font-weight: 600; color: #0f172a; }
+        tr:nth-child(even) { background: #f8fafc; }
+        ul, ol { margin: 8px 0 16px 24px; }
+        li { margin-bottom: 6px; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .ok { background: #16a34a; }
+        .pending { background: #0ea5e9; }
+        .warn { background: #f59e0b; }
+        .copy-btn {
+            margin: 20px 0;
+            padding: 12px 24px;
+            background: #0f172a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background: #1e293b; }
+        .copy-btn:active { background: #0ea5e9; }
+        #copied { margin-left: 10px; font-size: 13px; color: #16a34a; font-weight: 600; display: none; }
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 13px;
+            margin: 12px 0;
+        }
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+        }
+        .alert {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w">
+        <div class="header">
+            <h1>JASpay — Rapport de fin de Phase 1</h1>
+            <p>Fondation : Interface, identité visuelle, authentification Supabase, RLS initial</p>
+            <p style="margin-top:6px; font-size:13px; color:#94a3b8;">Date : 2026-11-16 · Statut : Terminé · En attente de validation pour Phase 2</p>
+        </div>
+
+        <div class="content">
+            <h2>1. Résumé exécutif</h2>
+            <p>
+                La Phase 1 — Fondation du projet <strong>JASpay</strong> a été réalisée avec succès.
+                Le dépôt GitHub <code>https://github.com/isaac10-maker/JASpay</code> (initialement vierge, uniquement un README.md)
+                contient désormais une architecture complète prête pour le développement des transactions (Phase 2).
+                Aucun secret, jeton GitHub ou clé Supabase n'a été enregistré dans le code source.
+            </p>
+
+            <button class="copy-btn" onclick="copierRapport()">
+                <span>📋</span> Copier le rapport complet
+            </button>
+            <span id="copied">Copié !</span>
+
+            <h2>2. Fichiers créés</h2>
+
+            <h3>Configuration du projet</h3>
+            <table>
+                <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+                <tbody>
+                    <tr><td><code>.env.example</code></td><td>Variables d'environnement du projet (sans valeurs secrètes)</td></tr>
+                    <tr><td><code>.gitignore</code></td><td>Exclusion de <code>.env</code>, <code>node_modules</code>, <code>dist</code>, <code>.idea</code>, etc.</td></tr>
+                    <tr><td><code>README.md</code></td><td>Documentation d'installation et d'utilisation</td></tr>
+                    <tr><td><code>client/package.json</code></td><td>Dépendances frontend (React 18, Vite, Tailwind, Supabase JS)</td></tr>
+                    <tr><td><code>client/vite.config.js</code></td><td>Configuration Vite</td></tr>
+                    <tr><td><code>client/index.html</code></td><td>Point d'entrée HTML</td></tr>
+                    <tr><td><code>client/tailwind.config.js</code></td><td>Thème Tailwind avec couleurs JASpay</td></tr>
+                    <tr><td><code>client/postcss.config.js</code></td><td>PostCSS + Tailwind + Autoprefixer</td></tr>
+                    <tr><td><code>client/src/styles/index.css</code></td><td>CSS de base avec composants Tailwind (boutons, inputs, cartes, glassmorphism)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Code source frontend</h3>
+            <table>
+                <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+                <tbody>
+                    <tr><td><code>client/src/main.jsx</code></td><td>Point d'entrée React</td></tr>
+                    <tr><td><code>client/src/App.jsx</code></td><td>Application principale avec react-router-dom, routes protégées, /admin</td></tr>
+                    <tr><td><code>client/src/lib/supabase.js</code></td><td>Client Supabase configuré (variables VITE_* uniquement)</td></tr>
+                    <tr><td><code>client/src/hooks/useAuth.js</code></td><td>Hook d'authentification (inscription, connexion, déconnexion, réinitialisation, profil)</td></tr>
+                    <tr><td><code>client/src/components/AuthGuard.jsx</code></td><td>Garde de route avec contrôle de rôle</td></tr>
+                    <tr><td><code>client/src/components/Navbar.jsx</code></td><td>Navigation responsive (liens conditionnés par authentification)</td></tr>
+                    <tr><td><code>client/src/pages/Login.jsx</code></td><td>Page de connexion (email + mot de passe)</td></tr>
+                    <tr><td><code>client/src/pages/Register.jsx</code></td><td>Page d'inscription (email, mot de passe, confirmation)</td></tr>
+                    <tr><td><code>client/src/pages/Dashboard.jsx</code></td><td>Tableau de bord utilisateur avec statistiques et actions rapides</td></tr>
+                    <tr><td><code>client/src/types/roles.js</code></td><td>Définition des rôles (super_admin, admin, agent, moderator, user)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Base de données (Supabase)</h3>
+            <table>
+                <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+                <tbody>
+                    <tr><td><code>supabase/migrations/001_initial_schema.sql</code></td><td>Migration initiale complète (tables, index, RLS, triggers, permissions par défaut)</td></tr>
+                    <tr><td><code>supabase/migrations/001_test_rls_policies.sql</code></td><td>Script de test des politiques RLS</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Documentation</h3>
+            <table>
+                <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+                <tbody>
+                    <tr><td><code>docs/RLS_POLICIES.md</code></td><td>Documentation détaillée des politiques RLS, triggers et tests recommandés</td></tr>
+                </tbody>
+            </table>
+
+            <h2>3. Migration SQL — 001_initial_schema.sql</h2>
+            <p>Tables créées :</p>
+            <ul>
+                <li><strong>profiles</strong> : id (référence auth.users), email, téléphone, public_id, rôle, is_active, timestamps</li>
+                <li><strong>user_roles</strong> : attribution rôle ↔ utilisateur (unique user_id + role)</li>
+                <li><strong>role_permissions</strong> : permissions par rôle</li>
+                <li><strong>audit_logs</strong> : journaux d'audit immuables</li>
+            </ul>
+            <p>Index créés sur <code>profiles(email)</code>, <code>profiles(role)</code>, <code>profiles(public_id)</code>, <code>user_roles(user_id)</code>, <code>user_roles(role)</code>, <code>role_permissions(role)</code>, <code>audit_logs(user_id)</code>, <code>audit_logs(created_at)</code>, <code>audit_logs(action)</code>.</p>
+            <p><strong>Trigger <code>handle_new_user()</code></strong> : création automatique du profil après inscription Supabase Auth (<code>SECURITY DEFINER</code>).</p>
+            <p><strong>Trigger <code>update_updated_at_column()</code></strong> : mise à jour automatique de <code>updated_at</code> sur <code>profiles</code>.</p>
+
+            <div class="code-block">CREATE EXTENSION IF NOT EXISTS pgcrypto;<br>CREATE TABLE profiles (...)<br>ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;<br>CREATE POLICY "Les utilisateurs lisent leur propre profil" ON profiles FOR SELECT TO authenticated USING (auth.uid() = id);<br>...</div>
+
+            <h2>4. Politiques RLS (activées sur toutes les tables)</h2>
+            <table>
+                <thead><tr><th>Table</th><th>Politique</th><th>Type</th><th>Condition</th></tr></thead>
+                <tbody>
+                    <tr><td>profiles</td><td>Les utilisateurs lisent leur propre profil</td><td>SELECT</td><td>auth.uid() = id</td></tr>
+                    <tr><td>profiles</td><td>Les administrateurs lisent tous les profils</td><td>SELECT</td><td>EXISTS (user_roles WHERE role IN ('super_admin','admin'))</td></tr>
+                    <tr><td>profiles</td><td>Les utilisateurs mettent à jour leur propre profil</td><td>UPDATE</td><td>auth.uid() = id</td></tr>
+                    <tr><td>user_roles</td><td>Les utilisateurs lisent leurs propres rôles</td><td>SELECT</td><td>auth.uid() = user_id</td></tr>
+                    <tr><td>user_roles</td><td>Les administrateurs lisent tous les rôles</td><td>SELECT</td><td>EXISTS (admin/super_admin)</td></tr>
+                    <tr><td>role_permissions</td><td>Lecture par tous les authentifiés</td><td>SELECT</td><td>true</td></tr>
+                    <tr><td>audit_logs</td><td>Les administrateurs lisent les journaux</td><td>SELECT</td><td>EXISTS (admin/super_admin)</td></tr>
+                </tbody>
+            </table>
+            <p class="note"><strong>Restrictions côté client :</strong> aucun INSERT/UPDATE/DELETE direct sur <code>user_roles</code>, <code>role_permissions</code>, <code>audit_logs</code> depuis le navigateur. La gestion des rôles est réservée au serveur.</p>
+
+            <h2>5. Identité visuelle et UI/UX</h2>
+            <p>Respect du prompt directeur :</p>
+            <ul>
+                <li><strong>Couleurs :</strong> bleu marine profond (#0f172a), bleu électrique modéré (#0ea5e9), blanc cassé (#f8fafc), gris clair (#f1f5f9), vert discret (#16a34a), rouge (#dc2626)</li>
+                <li><strong>Composants :</strong> .glass-panel (glassmorphism modéré), .btn-primary, .btn-secondary, .btn-success, .btn-danger, .input-field, .card</li>
+                <li><strong>Responsive :</strong> navigation adaptée mobile/tablette/desktop, grille de statistiques (1/2/4 colonnes), barre de navigation collante</li>
+                <li><strong>Animations :</strong> fade-in, slide-up pour les transitions douces</li>
+            </ul>
+
+            <h2>6. Résultats des tests</h2>
+            <table>
+                <thead><tr><th>Test</th><th>Résultat</th><th>Statut</th></tr></thead>
+                <tbody>
+                    <tr><td>npm install (dépendances)</td><td>Réussi — 136 packages installés</td><td><span class="badge ok">OK</span></td></tr>
+                    <tr><td>npm run build (Vite production)</td><td>Réussi — 82 modules, build en 1,75s</td><td><span class="badge ok">OK</span></td></tr>
+                    <tr><td>Compilation JSX/React</td><td>Aucune erreur</td><td><span class="badge ok">OK</span></td></tr>
+                    <tr><td>Configuration Tailwind</td><td>CSS généré sans erreur</td><td><span class="badge ok">OK</span></td></tr>
+                    <tr><td>RLS sur instance Supabase réelle</td><td>À exécuter (nécessite un projet Supabase configuré)</td><td><span class="badge pending">En attente</span></td></tr>
+                    <tr><td>Tests d'authentification réels</td><td>À exécuter (nécessite VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY)</td><td><span class="badge pending">En attente</span></td></tr>
+                </tbody>
+            </table>
+
+            <h2>7. Limites identifiées</h2>
+            <ul>
+                <li>Aucune clé Supabase n'est encore configurée (à faire via <code>.env.local</code> par l'utilisateur)</li>
+                <li>Les pages de dépôt/retrait ne sont pas encore développées (Phase 2)</li>
+                <li>L'espace administrateur (<code>/admin</code>) affiche un placeholder (Phase 3)</li>
+                <li>Pas de tests d'injection/XSS exécutés (Phase 6)</li>
+                <li>Pas de déploiement Vercel effectué (à venir)</li>
+            </ul>
+
+            <h2>8. Prochaines étapes (Phase 2 — Transactions)</h2>
+            <p>Une fois cette phase approuvée, le développement poursuivra avec :</p>
+            <ol>
+                <li>Bookmakers : 1xBet, MelBet, 1Win (logos, paramètres, pas d'intégration API simulée)</li>
+                <li>Dépôts : formulaire avec choix bookmaker, montant, moyen de paiement, numéro Mobile Money, récapitulatif</li>
+                <li>Retraits : formulaire avec bookmaker, montant, numéro, opérateur</li>
+                <li>Numéros enregistrés : proposition d'enregistrement, CRUD des numéros Mobile Money</li>
+                <li>Références de transaction : génération unique côté serveur</li>
+                <li>Statuts : en attente, en cours, action utilisateur requise, validée, rejetée, annulée</li>
+                <li>Migrations SQL : transactions, payment_methods, user_saved_numbers, bookmakers, payment_providers, payment_instructions</li>
+                <li>RLS : politiques pour les nouvelles tables (propriété via auth.uid())</li>
+            </ol>
+
+            <div class="alert">
+                <strong>Sécurité :</strong> Aucun secret, jeton GitHub ou clé Supabase n'a été enregistré dans le code source, les logs ou les fichiers publics. Le fichier <code>.env.example</code> ne contient aucune valeur réelle.
+            </div>
+
+            <div class="footer">
+                JASpay — Phase 1 — Fondation · Rapport généré le 2026-11-16 · En attente de validation pour la Phase 2
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copierRapport() {
+            const titre = document.querySelector('h1').innerText;
+            const lignes = [];
+            document.querySelectorAll('h2, h3, p, li, table').forEach(el => {
+                if (el.tagName === 'TABLE') {
+                    const rows = [];
+                    el.querySelectorAll('tr').forEach(tr => {
+                        const cells = Array.from(tr.querySelectorAll('th, td')).map(c => c.innerText.trim());
+                        rows.push(cells.join(' | '));
+                    });
+                    lignes.push('[TABLEAU]\n' + rows.join('\n') + '\n[/TABLEAU]');
+                } else {
+                    lignes.push(el.innerText.trim());
+                }
+            });
+            const texte = [titre, '', lignes.join('\n')].join('\n');
+            navigator.clipboard.writeText(texte).then(() => {
+                const badge = document.getElementById('copied');
+                badge.style.display = 'inline';
+                setTimeout(() => { badge.style.display = 'none'; }, 2000);
+            }).catch(err => {
+                console.error('Erreur copie :', err);
+                alert('Impossible de copier automatiquement. Sélectionnez le texte manuellement.');
+            });
+        }
+    </script>
+</body>
+</html>

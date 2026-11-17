@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-offwhite text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 rounded-xl shadow-sm;
+  }
+  .btn-primary {
+    @apply px-6 py-3 bg-marine-900 text-white rounded-lg font-medium hover:bg-marine-800 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply px-6 py-3 bg-offwhite text-marine-900 border border-marine-900/20 rounded-lg font-medium hover:bg-marine-900/5 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2;
+  }
+  .btn-success {
+    @apply px-6 py-3 bg-success-600 text-white rounded-lg font-medium hover:bg-success-700 transition-colors focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .btn-danger {
+    @apply px-6 py-3 bg-danger-600 text-white rounded-lg font-medium hover:bg-danger-700 transition-colors focus:outline-none focus:ring-2 focus:ring-danger-600 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-marine-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
+  }
+  .label-text {
+    @apply block text-sm font-medium text-marine-900/80 mb-2;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm p-6;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
