@@ -131,36 +131,25 @@ async function verifyAdminSession(req, res, next) {
 
     const now = new Date();
 
-    if (existingSession) {
-      // Session existe : vérifier qu'elle n'est pas révoquée ni expirée
-      if (existingSession.revoked_at) {
-        return res.status(403).json({ error: 'Session administrative révoquée. Veuillez vous reconnecter.' });
-      }
-
-      if (new Date(existingSession.expires_at) <= now) {
-        return res.status(403).json({ error: 'Session administrative expirée. Veuillez vous reconnecter.' });
-      }
-
-      // Session valide : mettre à jour last_activity
-      await req.supabaseAdmin
-        .from('admin_sessions')
-        .update({ last_activity: now.toISOString() })
-        .eq('id', existingSession.id);
-    } else {
-      // Aucune session : en créer une automatiquement (première connexion)
-      const { error: createError } = await req.supabaseAdmin
-        .from('admin_sessions')
-        .insert({
-          admin_user_id: adminUserId,
-          session_token: 'sess_' + require('crypto').randomBytes(16).toString('hex'),
-          expires_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-          last_activity: now.toISOString(),
-        });
-
-      if (createError) {
-        return res.status(500).json({ error: 'Erreur lors de la création de session.' });
-      }
+    if (!existingSession) {
+      // Aucune session active : l utilisateur doit se reconnecter pour en creer une
+      return res.status(403).json({ error: 'Aucune session administrative active. Veuillez vous reconnecter.' });
     }
+
+    // Session existe : verifier qu elle n est pas revokee ni expiree
+    if (existingSession.revoked_at) {
+      return res.status(403).json({ error: 'Session administrative revokee. Veuillez vous reconnecter.' });
+    }
+
+    if (new Date(existingSession.expires_at) <= now) {
+      return res.status(403).json({ error: 'Session administrative expiree. Veuillez vous reconnecter.' });
+    }
+
+    // Session valide : mettre a jour last_activity
+    await req.supabaseAdmin
+      .from('admin_sessions')
+      .update({ last_activity: now.toISOString() })
+      .eq('id', existingSession.id);
 
     next();
   } catch (err) {
@@ -172,14 +161,12 @@ async function verifyAdminSession(req, res, next) {
 // -----------------------------------------------------------------------------
 
 // Application du middleware de vérification de session aux routes admin et agent (A3)
-router.use('/admin', verifyAdminSession);
-router.use('/agent', verifyAdminSession);
 
 // 1. DASHBOARD SUPER ADMINISTRATEUR
 // -----------------------------------------------------------------------------
 
 // Statistiques globales
-router.get('/admin/stats', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.get('/admin/stats', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const supabaseAdmin = req.supabaseAdmin;
 
@@ -276,7 +263,7 @@ router.get('/admin/stats', authenticateUser, requireRole(['super_admin', 'admin'
 // -----------------------------------------------------------------------------
 
 // Liste des utilisateurs (admin/super_admin uniquement)
-router.get('/admin/users', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.get('/admin/users', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { search, role, is_active, limit = 50, offset = 0 } = req.query;
 
@@ -332,7 +319,7 @@ router.get('/admin/users', authenticateUser, requireRole(['super_admin', 'admin'
 });
 
 // Détails d'un utilisateur (profil + transactions)
-router.get('/admin/users/:id', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.get('/admin/users/:id', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
 
@@ -384,7 +371,7 @@ router.get('/admin/users/:id', authenticateUser, requireRole(['super_admin', 'ad
 });
 
 // Suspendre un utilisateur
-router.post('/admin/users/:id/suspend', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/users/:id/suspend', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
     const adminUserId = req.user.id;
@@ -439,7 +426,7 @@ router.post('/admin/users/:id/suspend', authenticateUser, requireRole(['super_ad
 });
 
 // Réactiver un utilisateur
-router.post('/admin/users/:id/reactivate', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/users/:id/reactivate', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
     const adminUserId = req.user.id;
@@ -476,7 +463,7 @@ router.post('/admin/users/:id/reactivate', authenticateUser, requireRole(['super
 });
 
 // Supprimer un utilisateur (procédure sécurisée - super_admin uniquement)
-router.delete('/admin/users/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, async (req, res) => {
+router.delete('/admin/users/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
     const adminUserId = req.user.id;
@@ -532,7 +519,7 @@ router.delete('/admin/users/:id', authenticateUser, requireRole(['super_admin'])
 // -----------------------------------------------------------------------------
 
 // Attribuer un rôle à un utilisateur
-router.post('/admin/users/:id/roles', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/users/:id/roles', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
     const { role } = req.body;
@@ -591,7 +578,7 @@ router.post('/admin/users/:id/roles', authenticateUser, requireRole(['super_admi
 
 // Révoquer un rôle d'un utilisateur (opération atomique côté PostgreSQL)
 // Protections : auto-révocation super_admin, dernier super_admin, admin vs super_admin
-router.delete('/admin/users/:id/roles/:role', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.delete('/admin/users/:id/roles/:role', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const targetUserId = req.params.id;
     const role = req.params.role;
@@ -630,7 +617,7 @@ router.delete('/admin/users/:id/roles/:role', authenticateUser, requireRole(['su
 // -----------------------------------------------------------------------------
 
 // Liste des transactions pour un agent (attribuées ou toutes si admin)
-router.get('/agent/transactions', authenticateUser, requireRole(['super_admin', 'admin', 'agent']), requireActiveAccount, async (req, res) => {
+router.get('/agent/transactions', authenticateUser, requireRole(['super_admin', 'admin', 'agent']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { status, limit = 50, offset = 0 } = req.query;
 
@@ -671,7 +658,7 @@ router.get('/agent/transactions', authenticateUser, requireRole(['super_admin', 
 
 // Traiter une transaction (agent/admin)
 // Traiter une transaction (agent/admin) - VERSION ATOMIQUE (A4)
-router.post('/agent/transactions/:id/process', authenticateUser, requireRole(['super_admin', 'admin', 'agent']), requireActiveAccount, async (req, res) => {
+router.post('/agent/transactions/:id/process', authenticateUser, requireRole(['super_admin', 'admin', 'agent']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { new_status, notes } = req.body;
 
@@ -697,7 +684,7 @@ router.post('/agent/transactions/:id/process', authenticateUser, requireRole(['s
 });
 
 // Assigner une transaction à un agent (admin uniquement)
-router.post('/admin/transactions/:id/assign', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/transactions/:id/assign', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { agent_id } = req.body;
 
@@ -746,7 +733,7 @@ router.post('/admin/transactions/:id/assign', authenticateUser, requireRole(['su
 // -----------------------------------------------------------------------------
 
 // Liste des bookmakers (admin)
-router.get('/admin/bookmakers', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, async (req, res) => {
+router.get('/admin/bookmakers', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { data, error } = await req.supabaseAdmin
       .from('bookmakers')
@@ -761,7 +748,7 @@ router.get('/admin/bookmakers', authenticateUser, requireRole(['super_admin', 'a
 });
 
 // Créer ou mettre à jour un bookmaker (admin/super_admin)
-router.post('/admin/bookmakers', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/bookmakers', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { id, name, technical_id, logo_url, is_active, display_order } = req.body;
     const adminUserId = req.user.id;
@@ -807,7 +794,7 @@ router.post('/admin/bookmakers', authenticateUser, requireRole(['super_admin', '
 });
 
 // Liste des opérateurs de paiement (admin)
-router.get('/admin/payment-providers', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, async (req, res) => {
+router.get('/admin/payment-providers', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { data, error } = await req.supabaseAdmin
       .from('payment_providers')
@@ -822,7 +809,7 @@ router.get('/admin/payment-providers', authenticateUser, requireRole(['super_adm
 });
 
 // Créer ou mettre à jour un opérateur de paiement (admin/super_admin)
-router.post('/admin/payment-providers', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/payment-providers', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { id, name, technical_id, is_active, supports_deposit, supports_withdrawal, ussd_instructions } = req.body;
     const adminUserId = req.user.id;
@@ -868,7 +855,7 @@ router.post('/admin/payment-providers', authenticateUser, requireRole(['super_ad
 });
 
 // Paramètres de la plateforme (admin/super_admin)
-router.get('/admin/settings', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, async (req, res) => {
+router.get('/admin/settings', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { data, error } = await req.supabaseAdmin
       .from('platform_settings')
@@ -882,7 +869,7 @@ router.get('/admin/settings', authenticateUser, requireRole(['super_admin', 'adm
   }
 });
 
-router.post('/admin/settings', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/settings', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { setting_key, setting_value, description, is_public } = req.body;
     const adminUserId = req.user.id;
@@ -922,7 +909,7 @@ router.post('/admin/settings', authenticateUser, requireRole(['super_admin', 'ad
 });
 
 // Annonces (admin/super_admin)
-router.get('/admin/announcements', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, async (req, res) => {
+router.get('/admin/announcements', authenticateUser, requireRole(['super_admin', 'admin', 'moderator']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { data, error } = await req.supabaseAdmin
       .from('announcements')
@@ -936,7 +923,7 @@ router.get('/admin/announcements', authenticateUser, requireRole(['super_admin',
   }
 });
 
-router.post('/admin/announcements', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.post('/admin/announcements', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { title, content, type, is_active, starts_at, ends_at } = req.body;
     const adminUserId = req.user.id;
@@ -982,7 +969,7 @@ router.post('/admin/announcements', authenticateUser, requireRole(['super_admin'
 // -----------------------------------------------------------------------------
 
 // Modifier une annonce (admin/super_admin)
-router.put('/admin/announcements/:id', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.put('/admin/announcements/:id', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, type, is_active, starts_at, ends_at } = req.body;
@@ -1023,7 +1010,7 @@ router.put('/admin/announcements/:id', authenticateUser, requireRole(['super_adm
 });
 
 // Archiver / supprimer une annonce (super_admin uniquement)
-router.delete('/admin/announcements/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, async (req, res) => {
+router.delete('/admin/announcements/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { id } = req.params;
     const adminUserId = req.user.id;
@@ -1059,7 +1046,7 @@ router.delete('/admin/announcements/:id', authenticateUser, requireRole(['super_
 // -----------------------------------------------------------------------------
 
 // Lister les sessions admin (super_admin uniquement)
-router.get('/admin/sessions', authenticateUser, requireRole(['super_admin']), requireActiveAccount, async (req, res) => {
+router.get('/admin/sessions', authenticateUser, requireRole(['super_admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { data, error } = await req.supabaseAdmin
       .from('admin_sessions')
@@ -1078,7 +1065,7 @@ router.get('/admin/sessions', authenticateUser, requireRole(['super_admin']), re
 // Révoquer une session admin (super_admin uniquement)
 // Révocation logique : met revoked_at au lieu de supprimer, permettant au middleware
 // verifyAdminSession de détecter et bloquer immédiatement l'accès.
-router.delete('/admin/sessions/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, async (req, res) => {
+router.delete('/admin/sessions/:id', authenticateUser, requireRole(['super_admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { id } = req.params;
     const adminUserId = req.user.id;
@@ -1114,7 +1101,7 @@ router.delete('/admin/sessions/:id', authenticateUser, requireRole(['super_admin
 // -----------------------------------------------------------------------------
 
 // Journal des actions administratives (super_admin et admin uniquement)
-router.get('/admin/audit-logs', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, async (req, res) => {
+router.get('/admin/audit-logs', authenticateUser, requireRole(['super_admin', 'admin']), requireActiveAccount, verifyAdminSession, async (req, res) => {
   try {
     const { limit = 100, offset = 0, action_type } = req.query;
 

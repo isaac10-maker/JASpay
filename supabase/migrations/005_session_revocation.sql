@@ -1,1 +1,309 @@
--- =============================================================================\n-- JASpay — Migration 005 : Révocation de sessions et fonctions atomiques (Phase 3)\n-- Correction des anomalies A1 à A4 du rapport de validation\n-- Date : 2026-11-16\n-- =============================================================================\n\n-- -----------------------------------------------------------------------------\n-- 1. Ajout de la colonne revoked_at à admin_sessions\n-- Permet de marquer une session comme révoquée sans la supprimer,\n-- conservant l'historique tout en bloquant l'accès ultérieur.\n-- -----------------------------------------------------------------------------\nALTER TABLE public.admin_sessions\n  ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;\n\nCREATE INDEX IF NOT EXISTS idx_admin_sessions_revoked_at ON public.admin_sessions(revoked_at);\n\n-- -----------------------------------------------------------------------------\n-- 2. Fonction atomique : traitement d'une transaction par un agent\n-- Utilise SELECT ... FOR UPDATE pour verrouiller la transaction,\n-- empêchant les doubles validations concurrentes.\n-- Toute l'opération (vérification + mise à jour + événement) est dans une seule\n-- transaction SQL.\n-- -----------------------------------------------------------------------------\nCREATE OR REPLACE FUNCTION public.process_transaction_atomic(\n  p_transaction_id UUID,\n  p_new_status TEXT,\n  p_agent_id UUID,\n  p_notes TEXT DEFAULT NULL\n)\nRETURNS TABLE (\n  success BOOLEAN,\n  error_code TEXT,\n  error_message TEXT,\n  transaction_id UUID,\n  old_status TEXT,\n  new_status TEXT\n)\nLANGUAGE plpgsql\nSECURITY DEFINER\nSET search_path = public, pg_temp\nAS $$\nDECLARE\n  v_current_status TEXT;\n  v_assigned_agent_id UUID;\n  v_user_id UUID;\n  v_is_admin_or_super BOOLEAN;\nBEGIN\n  -- Verrouiller la transaction pour éviter les modifications concurrentes\n  SELECT status, assigned_agent_id, user_id\n  INTO v_current_status, v_assigned_agent_id, v_user_id\n  FROM public.transactions\n  WHERE id = p_transaction_id\n  FOR UPDATE;\n\n  -- Vérifier que la transaction existe\n  IF v_current_status IS NULL THEN\n    RETURN QUERY SELECT\n      false,\n      'NOT_FOUND',\n      'Transaction introuvable.',\n      NULL, NULL, NULL;\n  END IF;\n\n  -- Vérifier que la transaction n'est pas déjà traitée\n  IF v_current_status IN ('completed', 'rejected', 'cancelled') THEN\n    RETURN QUERY SELECT\n      false,\n      'ALREADY_PROCESSED',\n      'Cette transaction a déjà été traitée (statut : ' || v_current_status || ').',\n      p_transaction_id, v_current_status, v_current_status;\n  END IF;\n\n  -- Vérifier que le nouveau statut est valide\n  IF p_new_status NOT IN ('processing', 'completed', 'rejected', 'cancelled') THEN\n    RETURN QUERY SELECT\n      false,\n      'INVALID_STATUS',\n      'Statut invalide.',\n      p_transaction_id, v_current_status, v_current_status;\n  END IF;\n\n  -- Vérifier les permissions de l'agent\n  -- Un agent ne peut traiter que ses transactions assignées\n  -- Un admin/super_admin peut traiter n'importe quelle transaction\n  SELECT public.is_admin_or_super_admin() INTO v_is_admin_or_super;\n\n  IF NOT v_is_admin_or_super THEN\n    IF v_assigned_agent_id IS NULL OR v_assigned_agent_id != p_agent_id THEN\n      RETURN QUERY SELECT\n        false,\n        'NOT_ASSIGNED',\n        'Cette transaction ne vous est pas assignée.',\n        p_transaction_id, v_current_status, v_current_status;\n    END IF;\n  END IF;\n\n  -- Mettre à jour le statut de la transaction\n  UPDATE public.transactions\n  SET status = p_new_status,\n      assigned_agent_id = CASE\n        WHEN p_new_status = 'processing' THEN p_agent_id\n        ELSE v_assigned_agent_id\n      END,\n      updated_at = now()\n  WHERE id = p_transaction_id\n  RETURNING id, status INTO transaction_id, new_status;\n\n  -- Enregistrer l'événement de changement de statut\n  INSERT INTO public.transaction_events (\n    transaction_id,\n    old_status,\n    new_status,\n    changed_by,\n    notes,\n    metadata\n  )\n  VALUES (\n    p_transaction_id,\n    v_current_status,\n    p_new_status,\n    p_agent_id,\n    p_notes,\n    jsonb_build_object('source', 'agent', 'action', p_new_status, 'atomic', true)\n  );\n\n  RETURN QUERY SELECT\n    true,\n    NULL,\n    NULL,\n    p_transaction_id,\n    v_current_status,\n    p_new_status;\n\nEXCEPTION\n  WHEN OTHERS THEN\n    RETURN QUERY SELECT\n      false,\n      'SERVER_ERROR',\n      SQLERRM,\n      NULL, NULL, NULL;\nEND;\n$$;\n\nREVOKE ALL ON FUNCTION public.process_transaction_atomic(UUID, TEXT, UUID, TEXT) FROM PUBLIC;\nGRANT EXECUTE ON FUNCTION public.process_transaction_atomic(UUID, TEXT, UUID, TEXT) TO authenticated;\n\n-- -----------------------------------------------------------------------------\n-- 3. Fonction atomique : révocation de rôle utilisateur\n-- Empêche l'auto-révocation de super_admin et la suppression du dernier super_admin.\n-- Toute l'opération est dans une seule transaction.\n-- -----------------------------------------------------------------------------\nCREATE OR REPLACE FUNCTION public.revoke_user_role_atomic(\n  p_target_user_id UUID,\n  p_role TEXT,\n  p_revoked_by UUID\n)\nRETURNS TABLE (\n  success BOOLEAN,\n  error_code TEXT,\n  error_message TEXT\n)\nLANGUAGE plpgsql\nSECURITY DEFINER\nSET search_path = public, pg_temp\nAS $$\nDECLARE\n  v_target_has_super_admin BOOLEAN;\n  v_caller_has_super_admin BOOLEAN;\n  v_super_admin_count INTEGER;\n  v_target_is_caller BOOLEAN;\nBEGIN\n  -- Vérifier si l'appelant est super_admin\n  SELECT public.has_role(p_revoked_by, 'super_admin') INTO v_caller_has_super_admin;\n\n  -- Vérifier si la cible est l'appelant lui-même\n  SELECT (p_target_user_id = p_revoked_by) INTO v_target_is_caller;\n\n  -- Vérifier si la cible a le rôle super_admin\n  SELECT public.has_role(p_target_user_id, 'super_admin') INTO v_target_has_super_admin;\n\n  -- Protection 1 : Interdire l'auto-révocation de super_admin\n  IF p_role = 'super_admin' AND v_target_has_super_admin AND v_target_is_caller THEN\n    RETURN QUERY SELECT\n      false,\n      'SELF_REVOKE_SUPER_ADMIN',\n      'Vous ne pouvez pas révoquer votre propre rôle super administrateur.';\n  END IF;\n\n  -- Protection 2 : Seul un super_admin peut révoquer le rôle super_admin\n  IF p_role = 'super_admin' AND NOT v_caller_has_super_admin THEN\n    RETURN QUERY SELECT\n      false,\n      'INSUFFICIENT_ROLE',\n      'Seul un super administrateur peut révoquer le rôle super administrateur.';\n  END IF;\n\n  -- Protection 3 : Un admin ne peut pas révoquer un rôle à un super_admin\n  IF v_target_has_super_admin AND NOT v_caller_has_super_admin THEN\n    RETURN QUERY SELECT\n      false,\n      'CANNOT_REVOKE_SUPER_ADMIN',\n      'Seul un super administrateur peut modifier les rôles d\'un super administrateur.';\n  END IF;\n\n  -- Protection 4 : Empêcher la suppression du dernier super_admin\n  IF p_role = 'super_admin' AND v_target_has_super_admin THEN\n    SELECT COUNT(*) INTO v_super_admin_count\n    FROM public.user_roles\n    WHERE role = 'super_admin';\n\n    IF v_super_admin_count <= 1 THEN\n      RETURN QUERY SELECT\n        false,\n        'LAST_SUPER_ADMIN',\n        'Impossible de révoquer le dernier super administrateur de la plateforme.';\n    END IF;\n  END IF;\n\n  -- Vérifier que le rôle existe pour l'utilisateur cible\n  IF NOT public.has_role(p_target_user_id, p_role) THEN\n    RETURN QUERY SELECT\n      false,\n      'ROLE_NOT_FOUND',\n      'L\'utilisateur ne possède pas ce rôle.';\n  END IF;\n\n  -- Révoquer le rôle (opération atomique dans la même transaction)\n  DELETE FROM public.user_roles\n  WHERE user_id = p_target_user_id\n    AND role = p_role;\n\n  -- Journaliser l'action\n  INSERT INTO public.admin_actions (\n    admin_user_id,\n    action_type,\n    target_user_id,\n    target_entity_type,\n    target_entity_id,\n    details\n  )\n  VALUES (\n    p_revoked_by,\n    'revoke_role',\n    p_target_user_id,\n    'user_roles',\n    NULL,\n    jsonb_build_object('role', p_role, 'revoked_by', p_revoked_by)\n  );\n\n  RETURN QUERY SELECT true, NULL, NULL;\n\nEXCEPTION\n  WHEN OTHERS THEN\n    RETURN QUERY SELECT\n      false,\n      'SERVER_ERROR',\n      SQLERRM;\nEND;\n$$;\n\nREVOKE ALL ON FUNCTION public.revoke_user_role_atomic(UUID, TEXT, UUID) FROM PUBLIC;\nGRANT EXECUTE ON FUNCTION public.revoke_user_role_atomic(UUID, TEXT, UUID) TO authenticated;\n\n-- -----------------------------------------------------------------------------\n-- Fin de la migration 005\n-- =============================================================================\n
+-- =============================================================================
+-- JASpay — Migration 005 : Révocation de sessions et fonctions atomiques (Phase 3)
+-- Correction des anomalies A1 à A4 du rapport de validation
+-- Date : 2026-11-16
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- 1. Ajout de la colonne revoked_at à admin_sessions
+-- Permet de marquer une session comme révoquée sans la supprimer,
+-- conservant l'historique tout en bloquant l'accès ultérieur.
+-- -----------------------------------------------------------------------------
+ALTER TABLE public.admin_sessions
+  ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_revoked_at ON public.admin_sessions(revoked_at);
+
+-- -----------------------------------------------------------------------------
+-- 2. Fonction atomique : traitement d'une transaction par un agent
+-- Utilise SELECT ... FOR UPDATE pour verrouiller la transaction,
+-- empêchant les doubles validations concurrentes.
+-- Toute l'opération (vérification + mise à jour + événement) est dans une seule
+-- transaction SQL.
+--
+-- SECURITE : L'exécution est RESTREINTE au backend (service_role).
+-- L'acces depuis le client (authenticated) est REVOQUE.
+-- Si l'appel provient d'un client authentifie (auth.uid() non null), la fonction
+-- verifie que auth.uid() = p_agent_id pour empecher l'usurpation d'identite d'agent.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.process_transaction_atomic(
+  p_transaction_id UUID,
+  p_new_status TEXT,
+  p_agent_id UUID,
+  p_notes TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  success BOOLEAN,
+  error_code TEXT,
+  error_message TEXT,
+  transaction_id UUID,
+  old_status TEXT,
+  new_status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $func$
+DECLARE
+  v_auth_uid UUID;
+  v_current_status TEXT;
+  v_assigned_agent_id UUID;
+  v_user_id UUID;
+  v_is_admin_or_super BOOLEAN;
+BEGIN
+  -- Verification d'identite pour les appels depuis le client (non-backend)
+  v_auth_uid := auth.uid();
+  IF v_auth_uid IS NOT NULL AND v_auth_uid != p_agent_id THEN
+    RETURN QUERY SELECT
+      false, 'IDENTITY_MISMATCH', 'Invalid agent identity.',
+      NULL, NULL, NULL;
+  END IF;
+
+  -- Verrouiller la transaction pour eviter les modifications concurrentes
+  SELECT status, assigned_agent_id, user_id
+  INTO v_current_status, v_assigned_agent_id, v_user_id
+  FROM public.transactions
+  WHERE id = p_transaction_id
+  FOR UPDATE;
+
+  -- Verifier que la transaction existe
+  IF v_current_status IS NULL THEN
+    RETURN QUERY SELECT
+      false, 'NOT_FOUND', 'Transaction introuvable.',
+      NULL, NULL, NULL;
+  END IF;
+
+  -- Verifier que la transaction n'est pas deja traitee
+  IF v_current_status IN ('completed', 'rejected', 'cancelled') THEN
+    RETURN QUERY SELECT
+      false, 'ALREADY_PROCESSED',
+      'Cette transaction a deja ete traitee (statut : ' || v_current_status || ').',
+      p_transaction_id, v_current_status, v_current_status;
+  END IF;
+
+  -- Verifier que le nouveau statut est valide
+  IF p_new_status NOT IN ('processing', 'completed', 'rejected', 'cancelled') THEN
+    RETURN QUERY SELECT
+      false, 'INVALID_STATUS', 'Statut invalide.',
+      p_transaction_id, v_current_status, v_current_status;
+  END IF;
+
+  -- Verifier les permissions de l'agent
+  SELECT public.is_admin_or_super_admin() INTO v_is_admin_or_super;
+
+  IF NOT v_is_admin_or_super THEN
+    IF v_assigned_agent_id IS NULL OR v_assigned_agent_id != p_agent_id THEN
+      RETURN QUERY SELECT
+        false, 'NOT_ASSIGNED', 'Cette transaction ne vous est pas assignee.',
+        p_transaction_id, v_current_status, v_current_status;
+    END IF;
+  END IF;
+
+  -- Mettre a jour le statut de la transaction
+  UPDATE public.transactions
+  SET status = p_new_status,
+      assigned_agent_id = CASE
+        WHEN p_new_status = 'processing' THEN p_agent_id
+        ELSE v_assigned_agent_id
+      END,
+      updated_at = now()
+  WHERE id = p_transaction_id
+  RETURNING id, status INTO transaction_id, new_status;
+
+  -- Enregistrer l'evenement de changement de statut
+  INSERT INTO public.transaction_events (
+    transaction_id,
+    old_status,
+    new_status,
+    changed_by,
+    notes,
+    metadata
+  )
+  VALUES (
+    p_transaction_id,
+    v_current_status,
+    p_new_status,
+    p_agent_id,
+    p_notes,
+    jsonb_build_object('source', 'agent', 'action', p_new_status, 'atomic', true)
+  );
+
+  RETURN QUERY SELECT
+    true, NULL, NULL,
+    p_transaction_id, v_current_status, p_new_status;
+
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN QUERY SELECT
+      false, 'SERVER_ERROR', SQLERRM,
+      NULL, NULL, NULL;
+END;
+$func$;
+
+REVOKE ALL ON FUNCTION public.process_transaction_atomic(UUID, TEXT, UUID, TEXT) FROM PUBLIC;
+-- ACCES RESERVIE AU BACKEND (service_role) uniquement.
+-- Le backend effectue les verifications d'identite avant d'appeler cette fonction.
+
+-- -----------------------------------------------------------------------------
+-- 3. Fonction atomique : révocation de rôle utilisateur
+-- Empêche l'auto-révocation de super_admin et la suppression du dernier super_admin.
+-- Toute l'opération est dans une seule transaction.
+--
+-- SECURITE : L'exécution est RESTREINTE au backend (service_role).
+-- L'acces depuis le client (authenticated) est REVOQUE.
+-- Verrou consultatif pg_advisory_lock pour eviter les race conditions
+-- sur la protection du dernier super_admin.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.revoke_user_role_atomic(
+  p_target_user_id UUID,
+  p_role TEXT,
+  p_revoked_by UUID
+)
+RETURNS TABLE (
+  success BOOLEAN,
+  error_code TEXT,
+  error_message TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $func$
+DECLARE
+  v_auth_uid UUID;
+  v_target_has_super_admin BOOLEAN;
+  v_caller_has_super_admin BOOLEAN;
+  v_super_admin_count INTEGER;
+  v_target_is_caller BOOLEAN;
+BEGIN
+  -- Verification d'identite pour les appels depuis le client (non-backend)
+  v_auth_uid := auth.uid();
+  IF v_auth_uid IS NOT NULL AND v_auth_uid != p_revoked_by THEN
+    RETURN QUERY SELECT
+      false, 'IDENTITY_MISMATCH', 'Invalid caller identity.';
+  END IF;
+
+  -- Verrou consultatif pour eviter les race conditions sur le dernier super_admin
+  IF p_role = 'super_admin' THEN
+    PERFORM pg_advisory_lock(hashtext('jaspay_super_admin_revoke'));
+  END IF;
+
+  BEGIN
+    -- Verifier si l'appelant est super_admin
+    SELECT public.has_role(p_revoked_by, 'super_admin') INTO v_caller_has_super_admin;
+
+    -- Verifier si la cible est l'appelant lui-meme
+    SELECT (p_target_user_id = p_revoked_by) INTO v_target_is_caller;
+
+    -- Verifier si la cible a le role super_admin
+    SELECT public.has_role(p_target_user_id, 'super_admin') INTO v_target_has_super_admin;
+
+    -- Protection 1 : Interdire l'auto-revocation de super_admin
+    IF p_role = 'super_admin' AND v_target_has_super_admin AND v_target_is_caller THEN
+      IF p_role = 'super_admin' THEN
+        PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+      END IF;
+      RETURN QUERY SELECT
+        false, 'SELF_REVOKE_SUPER_ADMIN', 'Auto-revocation de super admin interdite.';
+    END IF;
+
+    -- Protection 2 : Seul un super_admin peut revoquer le role super_admin
+    IF p_role = 'super_admin' AND NOT v_caller_has_super_admin THEN
+      IF p_role = 'super_admin' THEN
+        PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+      END IF;
+      RETURN QUERY SELECT
+        false, 'INSUFFICIENT_ROLE', 'Seul un super admin peut revoquer le role super admin.';
+    END IF;
+
+    -- Protection 3 : Un admin ne peut pas revoquer un role a un super_admin
+    IF v_target_has_super_admin AND NOT v_caller_has_super_admin THEN
+      IF p_role = 'super_admin' THEN
+        PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+      END IF;
+      RETURN QUERY SELECT
+        false, 'CANNOT_REVOKE_SUPER_ADMIN', 'Seul un super admin peut modifier les roles d un super admin.';
+    END IF;
+
+    -- Protection 4 : Empêcher la suppression du dernier super_admin
+    IF p_role = 'super_admin' AND v_target_has_super_admin THEN
+      SELECT COUNT(*) INTO v_super_admin_count
+      FROM public.user_roles
+      WHERE role = 'super_admin';
+
+      IF v_super_admin_count <= 1 THEN
+        IF p_role = 'super_admin' THEN
+          PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+        END IF;
+        RETURN QUERY SELECT
+          false, 'LAST_SUPER_ADMIN', 'Impossible de revoquer le dernier super admin de la plateforme.';
+      END IF;
+    END IF;
+
+    -- Verifier que le role existe pour l'utilisateur cible
+    IF NOT public.has_role(p_target_user_id, p_role) THEN
+      IF p_role = 'super_admin' THEN
+        PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+      END IF;
+      RETURN QUERY SELECT
+        false, 'ROLE_NOT_FOUND', 'L utilisateur ne possede pas ce role.';
+    END IF;
+
+    -- Revoquer le role (operation atomique dans la meme transaction)
+    DELETE FROM public.user_roles
+    WHERE user_id = p_target_user_id
+      AND role = p_role;
+
+    -- Journaliser l'action
+    INSERT INTO public.admin_actions (
+      admin_user_id,
+      action_type,
+      target_user_id,
+      target_entity_type,
+      target_entity_id,
+      details
+    )
+    VALUES (
+      p_revoked_by,
+      'revoke_role',
+      p_target_user_id,
+      'user_roles',
+      NULL,
+      jsonb_build_object('role', p_role, 'revoked_by', p_revoked_by)
+    );
+
+    IF p_role = 'super_admin' THEN
+      PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+    END IF;
+
+    RETURN QUERY SELECT true, NULL, NULL;
+
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF p_role = 'super_admin' THEN
+        PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+      END IF;
+      RETURN QUERY SELECT
+        false, 'SERVER_ERROR', SQLERRM;
+  END;
+
+  IF p_role = 'super_admin' THEN
+    PERFORM pg_advisory_unlock(hashtext('jaspay_super_admin_revoke'));
+  END IF;
+END;
+$func$;
+
+REVOKE ALL ON FUNCTION public.revoke_user_role_atomic(UUID, TEXT, UUID) FROM PUBLIC;
+-- ACCES RESERVIE AU BACKEND (service_role) uniquement.
+
+-- -----------------------------------------------------------------------------
+-- Note de deployment :
+-- Le deploiement actuel sur Supabase utilise une version simplifiee de ces
+-- fonctions (sans pg_advisory_lock et avec une logique reduite) en raison de
+-- contraintes du connecteur d'exécution SQL. La version complète ci-dessus
+-- doit être appliquée manuellement via l'interface SQL de Supabase pour
+-- bénéficier de toutes les protections.
+-- -----------------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------------
+-- Fin de la migration 005
+-- =============================================================================

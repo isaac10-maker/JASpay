@@ -298,6 +298,81 @@ La Phase 3 ne sera considérée comme validée que lorsque :
 
 ---
 
+## 7.3 Audit complémentaire — Vulnérabilités critiques détectées et corrigées
+
+### A1/A2 — Protection du rôle super_admin (revoke_user_role_atomic)
+
+**Vulnérabilité détectée** : La fonction `revoke_user_role_atomic` avait `GRANT EXECUTE TO authenticated`, permettant à n'importe quel utilisateur authentifié de l'appeler via RPC. De plus, le paramètre `p_revoked_by` n'était pas vérifié contre `auth.uid()`, permettant l'usurpation d'identité d'un super_admin. Aucun verrou ne protégeait contre les appels simultanés (race condition sur le dernier super_admin).
+
+**Fichier modifié** : `supabase/migrations/005_session_revocation.sql` + `server/src/admin.js`
+
+**Solution technique appliquée** :
+1. `REVOKE EXECUTE ON FUNCTION revoke_user_role_atomic FROM authenticated` — accès réservé au backend (service_role)
+2. Vérification d'identité : si `auth.uid() IS NOT NULL`, la fonction vérifie que `auth.uid() = p_revoked_by`
+3. Verrou consultatif `pg_advisory_lock(hashtext('jaspay_super_admin_revoke'))` pour atomicité sur le dernier super_admin
+4. Toutes les vérifications de rôle (auto-révocation, dernier super_admin, admin vs super_admin) conservées dans la fonction SQL
+5. Journalisation des tentatives dans `admin_actions`
+
+**Permissions SQL réelles (vérifiées sur Supabase)** : `REVOKE EXECUTE FROM anon, authenticated` appliqué. Seul `postgres` et `service_role` conservent EXECUTE. Avant cette correction, `anon` possédait EXECUTE sur cette fonction — vulnérabilité corrigée.
+
+**Tests exécutés** : ❌ NON EXÉCUTÉS (requièrent vrais JWT)
+
+---
+
+### A3 — Révocation effective des sessions (verifyAdminSession)
+
+**Vulnérabilités détectées** :
+1. **Ordre d'exécution incorrect** : `router.use('/admin', verifyAdminSession)` s'exécutait AVANT `authenticateUser`, donc `req.user` était `undefined` — le middleware plantait ou était contournable.
+2. **Recréation automatique de session** : Si aucune session n'existait, le middleware en créait une automatiquement, permettant de contourner une révocation antérieure.
+3. **session_token non lié au JWT** : Le token de session était généré aléatoirement sans lien avec l'authentification Supabase.
+
+**Fichier modifié** : `server/src/admin.js`
+
+**Solution technique appliquée** :
+1. Suppression des `router.use('/admin', verifyAdminSession)` et `router.use('/agent', verifyAdminSession)` globaux
+2. Ajout de `verifyAdminSession` comme middleware explicite dans chaque route, **après** `authenticateUser`, `requireRole` et `requireActiveAccount` (24 routes modifiées)
+3. Suppression de la branche `else` qui recréait automatiquement une session — une absence de session retourne maintenant 403
+4. Vérification de `revoked_at` et `expires_at` à chaque requête admin/agent
+5. Le JWT brut n'est jamais stocké dans `admin_sessions`
+
+**Limite résiduelle** : Le JWT Supabase reste valide jusqu'à son expiration naturelle même après révocation de la session `admin_sessions`. Le middleware ajoute une couche de contrôle applicatif, mais pour une invalidation immédiate du JWT lui-même, il faudrait un mécanisme de blacklist de tokens.
+
+---
+
+### A4 — Protection contre les doubles validations concurrentes (process_transaction_atomic)
+
+**Vulnérabilité détectée** : La fonction `process_transaction_atomic` avait `GRANT EXECUTE TO authenticated`, et le paramètre `p_agent_id` n'était pas vérifié contre `auth.uid()`, permettant à un utilisateur de traiter une transaction avec l'ID d'un autre agent.
+
+**Fichier modifié** : `supabase/migrations/005_session_revocation.sql` + `server/src/admin.js`
+
+**Solution technique appliquée** :
+1. `REVOKE EXECUTE ON FUNCTION process_transaction_atomic FROM authenticated` — accès réservé au backend (service_role)
+2. Vérification d'identité : si `auth.uid() IS NOT NULL`, la fonction vérifie que `auth.uid() = p_agent_id`
+3. `SELECT ... FOR UPDATE` pour verrouiller la ligne de transaction pendant toute la durée de la transaction SQL
+4. Vérification du statut avant mise à jour (pas de double traitement)
+5. Vérification de l'assignation de l'agent pour les non-admin
+6. Mise à jour du statut + insertion dans `transaction_events` dans la même transaction SQL
+7. Retour d'erreur explicite (code 409) si une autre requête a déjà traité la transaction
+
+**Permissions SQL réelles (vérifiées sur Supabase)** : `REVOKE EXECUTE FROM anon, authenticated` appliqué. Seul `postgres` et `service_role` conservent EXECUTE. Avant cette correction, `anon` possédait EXECUTE sur cette fonction — vulnérabilité corrigée.
+
+---
+
+### Vulnérabilité supplémentaire — log_admin_action (falsification de journaux)
+
+**Vulnérabilité détectée** : La fonction `log_admin_action` avait `GRANT EXECUTE TO authenticated`, permettant à n'importe quel utilisateur authentifié d'appeler la fonction via RPC et de passer n'importe quel `p_admin_user_id`. Un utilisateur ordinaire pouvait ainsi créer des entrées d'audit faussement attribuées à un super_admin, falsifiant l'historique des actions administratives.
+
+**Fichier modifié** : `supabase/migrations/004_administration.sql` (logique) + exécution directe sur Supabase
+
+**Solution technique appliquée** :
+1. `REVOKE EXECUTE ON FUNCTION log_admin_action FROM authenticated` — accès réservé au backend (service_role)
+2. La fonction reste `SECURITY DEFINER` avec `SET search_path = public, pg_temp`
+3. Seul le backend peut écrire dans `admin_actions`
+
+**Permissions SQL réelles (vérifiées sur Supabase)** : `REVOKE EXECUTE FROM anon, authenticated` appliqué. Seul `postgres` et `service_role` conservent EXECUTE. Avant cette correction, `anon` possédait EXECUTE sur cette fonction — vulnérabilité corrigée.
+
+---
+
 ## 8. Vulnérabilités restantes et limites connues
 
 ### 8.1 Limites architecturales
@@ -310,6 +385,9 @@ La Phase 3 ne sera considérée comme validée que lorsque :
 | L4 | Pas de rate limiting spécifique par endpoint admin | Risque de force brute sur les routes admin | Rate limiting général (100 req/15min) appliqué à toutes les routes |
 | L5 | Pas de politique de conservation automatisée pour `admin_actions` | Les journaux croissent indéfiniment | À prévoir : job de nettoyage/archive périodique |
 | L6 | `admin_sessions` non relié à la session Supabase Auth | Une session admin peut survivre à la déconnexion Supabase | Révocation manuelle possible via l'interface surveillance |
+| L7 | JWT non révoquable immédiatement | Une session `admin_sessions` révoquée ne invalide pas le JWT Supabase déjà émis | Le middleware `verifyAdminSession` bloque l'accès aux routes admin, mais le JWT reste valide jusqu'à expiration naturelle |
+| L8 | Fonctions SQL simplifiées sur Supabase | La version déployée sur Supabase ne contient pas `pg_advisory_lock` ni toute la logique de vérification des rôles (contraintes du connecteur d'exécution SQL) | La version complète est dans le fichier de migration 005, à appliquer manuellement via l'interface SQL de Supabase |
+| L9 | `verifyAdminSession` n'est pas lié au JTI du JWT | Le `session_token` est généré aléatoirement sans lien avec l'identifiant de session Supabase Auth | Une session révoquée ne peut pas être recréée automatiquement, mais le lien JWT-session n'est pas cryptographiquement fort |
 
 ### 8.2 Vulnérabilités potentielles (à surveiller)
 
@@ -347,9 +425,9 @@ La Phase 3 ne sera considérée comme validée que lorsque :
 | Composant | État | Détail |
 |-----------|------|--------|
 | Migrations 001-003 | ✅ Appliquées sur Supabase | Validées précédemment |
-| Migration 004 | ✅ Créée | Non encore appliquée sur l'instance cible (à confirmer) |
+| Migration 004 | ✅ Appliquée sur Supabase | Tables, RLS, politiques, fonctions de rôles vérifiées |
 | RLS | ✅ Activé sur toutes les tables | Politiques écrites |
-| Fonctions SQL | ✅ Créées | `log_admin_action`, fonctions de rôles existantes |
+| Fonctions SQL | ✅ Créées | `log_admin_action`, `revoke_user_role_atomic`, `process_transaction_atomic`, fonctions de rôles |
 
 ---
 
@@ -446,12 +524,12 @@ La Phase 3 ne sera considérée comme validée que lorsque :
 
 | Test | Description | Statut | Résultat |
 |------|-------------|--------|----------|
-| A1-A | Révocation du dernier super_admin refusée | NON EXÉCUTÉ | Requiert vrais JWT |
-| A1-B | Auto-révocation super_admin refusée | NON EXÉCUTÉ | Requiert vrais JWT |
-| A3-A | Session révoquée bloquée par verifyAdminSession | NON EXÉCUTÉ | Requiert vrais JWT |
-| A3-B | Session non révoquée continue de fonctionner | NON EXÉCUTÉ | Requiert vrais JWT |
-| A4-A | Deux requêtes concurrentes ne valident pas deux fois | NON EXÉCUTÉ | Requiert vrais JWT |
-| A4-B | Agent non assigné ne peut pas traiter la transaction | NON EXÉCUTÉ | Requiert vrais JWT |
+| A1-A | Révocation du dernier super_admin refusée | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
+| A1-B | Auto-révocation super_admin refusée | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
+| A3-A | Session révoquée bloquée par verifyAdminSession | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
+| A3-B | Session non révoquée continue de fonctionner | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
+| A4-A | Deux requêtes concurrentes ne valident pas deux fois | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
+| A4-B | Agent non assigné ne peut pas traiter la transaction | NON EXÉCUTÉ | Requiert vrais JWT + comptes de test |
 
 **Note** : Aucun de ces tests n'a pu être exécuté car il n'existe pas encore de comptes de test dans Supabase Auth avec des rôles attribués, et aucun JWT n'a pu être obtenu.
 
@@ -461,22 +539,68 @@ La Phase 3 ne sera considérée comme validée que lorsque :
 
 | Élément | État | Détail |
 |---------|------|--------|
-| Migration 004 | ✅ Créée et appliquée sur Supabase | Tables, RLS, politiques, fonction `log_admin_action` vérifiées |
-| Migration 005 | ✅ Créée et appliquée sur Supabase | Colonne `revoked_at`, fonctions `revoke_user_role_atomic` et `process_transaction_atomic` |
-| Backend routes admin | ✅ Créées et chargées | 26 routes, syntaxe validée, corrections A1-A4 appliquées |
+| Migration 004 | ✅ Créée et appliquée sur Supabase | 4 tables, RLS, politiques, fonctions de rôles vérifiées |
+| Migration 005 | ✅ Créée et appliquée sur Supabase | Colonne `revoked_at`, fonctions atomiques (version simplifiée déployée) |
+| Backend routes admin | ✅ Créées et chargées | 24 routes, syntaxe validée, corrections A1-A4 appliquées |
 | Frontend pages admin | ✅ Créées | Layout, Dashboard, Users, Transactions, Config, Announcements, Surveillance |
 | Routage React | ✅ Connecté | Toutes les routes admin montées dans App.jsx |
 | Build client | ✅ Réussi | 94 modules, aucune erreur |
 | Connexion backend → Supabase | ✅ Testée | Requête sur `profiles` réussie |
-| Tests avec vrais JWT (T1-T62) | ❌ Non exécutés | Comptes de test et JWT non disponibles |
-| Tests spécifiques A1-A4 | ❌ Non exécutés | Requèrent vrais JWT et comptes de test |
-| Rapport final | ✅ Rédigé | Ce document, mis à jour avec les corrections A1-A4 |
+| Permissions SQL (REVOKE anon/authenticated) | ✅ Vérifiées et appliquées sur Supabase | 3 fonctions protégées |
+| Clés jamais exposées au frontend | ✅ Respecté | `service_role` uniquement backend, fichiers `.env` gitignorés |
+| Push GitHub | ✅ Effectué | Commit `7e58409` poussé sur `main` |
+| Tests T1-T62 avec vrais JWT | ❌ NON EXÉCUTÉS | Comptes de test et JWT indisponibles |
+| Tests spécifiques A1-A4 | ❌ NON EXÉCUTÉS | Requèrent vrais JWT et comptes de test |
+| Rapport d'audit | ✅ Rédigé | Ce document, inclut l'audit complémentaire des vulnérabilités critiques |
 
-**Verdict : Phase 3 partiellement terminée — corrections de sécurité A1-A4 appliquées.** Le code est complet, le build réussit, la connexion Supabase est opérationnelle, mais la validation ne peut pas être considérée comme acquise tant que les tests avec vrais JWT n'ont pas été exécutés sur l'environnement Supabase réel.
+**Verdict : Phase 3 partiellement terminée — audit complémentaire et corrections A1-A4 appliqués.** Le code est complet, le build réussit, la connexion Supabase est opérationnelle, les vulnérabilités critiques identifiées lors de l'audit ont été corrigées, mais la validation ne peut pas être considérée comme acquise tant que les tests avec vrais JWT n'ont pas été exécutés sur l'environnement Supabase réel.
 
 ---
 
-## 13. Prochaines étapes (avant Phase 4)
+## 13. Bilan des tests d'intégration
+
+### Tableau final des tests
+
+| ID | Test | Rôle | Endpoint | Statut | Résultat HTTP attendu | Résultat HTTP obtenu | Commentaire |
+|----|------|------|----------|--------|----------------------|---------------------|-------------|
+| T1 | Accès dashboard stats | super_admin | GET /api/admin/stats | NON EXÉCUTÉ | 200 | — | Pas de JWT |
+| T2 | Accès dashboard stats | admin | GET /api/admin/stats | NON EXÉCUTÉ | 200 | — | Pas de JWT |
+| T3 | Accès dashboard stats | agent | GET /api/admin/stats | NON EXÉCUTÉ | 403 | — | Pas de JWT |
+| T4 | Accès dashboard stats | user | GET /api/admin/stats | NON EXÉCUTÉ | 403 | — | Pas de JWT |
+| T5 | Accès sans token | aucun | GET /api/admin/stats | NON EXÉCUTÉ | 401 | — | Pas de JWT |
+| T6 | Token expiré | tout utilisateur | GET /api/admin/stats | NON EXÉCUTÉ | 401 | — | Pas de JWT |
+| T7-T18 | Gestion des utilisateurs | divers | /api/admin/users/* | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T19-T24 | Gestion des rôles | divers | /api/admin/users/*/roles* | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T25-T31 | Espace agent | agent/admin | /api/agent/transactions* | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T32-T38 | Configuration | admin/super_admin | /api/admin/* | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T39-T44 | Annonces | admin/super_admin | /api/admin/announcements* | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T45-T51 | Surveillance | super_admin/admin | /api/admin/audit-logs, /api/admin/sessions | NON EXÉCUTÉ | selon cas | — | Pas de JWT |
+| T52-T56 | Protection côté serveur | tous | /api/admin/* | NON EXÉCUTÉ | 403/42501 | — | Pas de JWT |
+| T57-T62 | Journalisation | admin/super_admin | /api/admin/audit-logs | NON EXÉCUTÉ | 200 | — | Pas de JWT |
+| A1-A | Dernier super_admin refusé | super_admin | DELETE /api/admin/users/:id/roles/super_admin | NON EXÉCUTÉ | 400 | — | Pas de JWT |
+| A1-B | Auto-révocation refusé | super_admin | DELETE /api/admin/users/:id/roles/super_admin | NON EXÉCUTÉ | 400 | — | Pas de JWT |
+| A3-A | Session révoquée bloquée | admin | GET /api/admin/stats | NON EXÉCUTÉ | 403 | — | Pas de JWT |
+| A3-B | Session non révoquée OK | admin | GET /api/admin/stats | NON EXÉCUTÉ | 200 | — | Pas de JWT |
+| A4-A | Double validation concurrente | agent | POST /api/agent/transactions/:id/process | NON EXÉCUTÉ | 200 + 409 | — | Pas de JWT |
+| A4-B | Agent non assigné refusé | agent | POST /api/agent/transactions/:id/process | NON EXÉCUTÉ | 403 | — | Pas de JWT |
+
+**Résumé des tests** : 0 RÉUSSI / 0 ÉCHOUÉ / 68 NON EXÉCUTÉ
+
+**Cause** : Aucun compte de test n'existe dans Supabase Auth, aucun JWT n'a pu être obtenu, et le connecteur Supabase ne permet pas de créer des utilisateurs dans `auth.users`.
+
+---
+
+## 14. Prochaines étapes (avant Phase 4)
+
+1. Créer 5 comptes de test dans Supabase Auth (super_admin, admin, agent, moderator, user)
+2. Attribuer les rôles dans `user_roles`
+3. Obtenir des JWT via `supabase.auth.signInWithPassword`
+4. Exécuter tous les tests T1-T62 du plan `TESTS_PLAN_PHASE3.md`
+5. Exécuter les 6 tests spécifiques A1-A4 (dont A4 avec deux requêtes concurrentes)
+6. Documenter les résultats dans ce rapport
+7. Valider la Phase 3 avant d'envisager la Phase 4
+
+**La Phase 4 ne doit pas démarrer sans validation expresse de la Phase 3.**## 13. Prochaines étapes (avant Phase 4)
 
 1. Appliquer la migration 004 sur l'instance Supabase cible (si ce n'est pas déjà fait)
 2. Démarrer le backend avec les variables d'environnement `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`
