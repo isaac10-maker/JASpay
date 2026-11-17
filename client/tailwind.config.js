@@ -7,13 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Identité JASpay — Bleu marine profond, bleu électrique modéré
         marine: {
           900: '#0f172a', // Bleu marine profond
           800: '#1e293b',
+          700: '#334155',
         },
         electric: {
           400: '#38bdf8', // Bleu électrique modéré
           500: '#0ea5e9',
+          600: '#0284c7',
+        },
+        // Fond spatial
+        space: {
+          900: '#090a0f', // Noir bleuté profond
+          800: '#111827',
+          700: '#1f2937',
         },
         offwhite: '#f8fafc', // Blanc cassé
         gray: {
@@ -25,7 +34,7 @@ export default {
           100: '#dcfce7',
           200: '#bbf7d0',
           500: '#22c55e',
-          600: '#16a34a',
+          600: '#16a34a', // Vert validé pour opérations validées
           700: '#15803d',
         },
         danger: {
@@ -33,7 +42,7 @@ export default {
           100: '#fee2e2',
           200: '#fecaca',
           500: '#ef4444',
-          600: '#dc2626',
+          600: '#dc2626', // Rouge pour erreurs et rejets
           700: '#b91c1c',
         },
       },
@@ -43,6 +52,7 @@ export default {
       animation: {
         'fade-in': 'fadeIn 0.4s ease-out',
         'slide-up': 'slideUp 0.4s ease-out',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -52,6 +62,10 @@ export default {
         slideUp: {
           '0%': { transform: 'translateY(12px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
       },
     },

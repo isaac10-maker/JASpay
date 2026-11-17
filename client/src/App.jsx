@@ -18,6 +18,7 @@ import AdminTransactions from './pages/AdminTransactions';
 import AdminConfig from './pages/AdminConfig';
 import AdminAnnouncements from './pages/AdminAnnouncements';
 import AdminSurveillance from './pages/AdminSurveillance';
+import Starfield from './components/Starfield';
 
 /**
  * Route protégée : rend le composant enfant uniquement si l'utilisateur est authentifié.
@@ -75,7 +76,8 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-offwhite">
+      <div className="min-h-screen">
+        <Starfield />
         <Navbar />
 
         <Routes>

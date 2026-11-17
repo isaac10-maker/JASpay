@@ -2,44 +2,254 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   JASpay — Thème spatial (Refonte visuelle)
+   Fond noir bleuté profond, dégradé radial bleu nuit, étoiles lumineuses,
+   glassmorphism modéré, cartes flottantes, identité financière préservée.
+   ============================================================================ */
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
+
   body {
-    @apply bg-offwhite text-gray-900 antialiased;
+    @apply antialiased;
+    background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    background-attachment: fixed;
+    color: #f8fafc;
+    min-height: 100vh;
+  }
+
+  /* Barre de défilement fine et personnalisée */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(14, 165, 233, 0.4);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(14, 165, 233, 0.7);
+  }
+
+  /* Respect de prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
+/* ============================================================================
+   Composants
+   ============================================================================ */
+
 @layer components {
+  /* Panneau glassmorphism — fonds semi-transparents, légèrement floutés */
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/40 rounded-xl shadow-sm;
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-sm;
   }
+
+  .glass-panel-hover {
+    @apply bg-white/15 backdrop-blur-md border border-white/30 rounded-xl shadow-sm;
+    transition: all 0.3s ease;
+  }
+
+  .glass-panel-hover:hover {
+    @apply bg-white/20 border-white/40;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Bouton principal — bleu électrique modéré */
   .btn-primary {
-    @apply px-6 py-3 bg-marine-900 text-white rounded-lg font-medium hover:bg-marine-800 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    @apply px-6 py-3 bg-electric-500 text-white rounded-lg font-medium hover:bg-electric-400 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
   }
+
+  .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
+  }
+
+  /* Bouton secondaire — bordure fine lumineuse */
   .btn-secondary {
-    @apply px-6 py-3 bg-offwhite text-marine-900 border border-marine-900/20 rounded-lg font-medium hover:bg-marine-900/5 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2;
+    @apply px-6 py-3 bg-transparent text-white border border-white/30 rounded-lg font-medium hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-electric-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
+
+  /* Bouton succès — vert validé */
   .btn-success {
     @apply px-6 py-3 bg-success-600 text-white rounded-lg font-medium hover:bg-success-700 transition-colors focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
   }
+
+  /* Bouton danger — rouge erreurs */
   .btn-danger {
     @apply px-6 py-3 bg-danger-600 text-white rounded-lg font-medium hover:bg-danger-700 transition-colors focus:outline-none focus:ring-2 focus:ring-danger-600 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
   }
+
+  /* Champ de saisie — fond sombre, bordure électrique */
   .input-field {
-    @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-marine-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
+    @apply w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
   }
+
+  .input-field::placeholder {
+    color: rgba(248, 250, 252, 0.4);
+  }
+
+  /* Label de champ */
   .label-text {
-    @apply block text-sm font-medium text-marine-900/80 mb-2;
+    @apply block text-sm font-medium text-white/80 mb-2;
   }
+
+  /* Carte flottante — légèrement détachée du fond, profondeur avec ombre */
   .card {
-    @apply bg-white rounded-xl border border-gray-100 shadow-sm p-6;
+    @apply bg-white/5 rounded-xl border border-white/10 shadow-lg p-6;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    border-color: rgba(14, 165, 233, 0.3);
+  }
+
+  /* Carte de statut — pour les montants et statuts de transaction */
+  .stat-card {
+    @apply bg-white/5 rounded-xl border border-white/10 p-5;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    border-color: rgba(14, 165, 233, 0.4);
+    transform: translateY(-2px);
+  }
+
+  /* Onglet de navigation — état actif identifiable */
+  .nav-tab {
+    @apply px-4 py-2 text-sm font-medium text-white/50 rounded-lg transition-colors;
+  }
+
+  .nav-tab-active {
+    @apply bg-white/10 text-white border border-electric-500/50 shadow-[0_0_15px_rgba(14,165,233,0.2)];
+  }
+
+  .nav-tab:hover:not(.nav-tab-active) {
+    @apply text-white/80 bg-white/5;
+  }
+
+  /* Badge de statut — couleurs spécifiques */
+  .badge-success {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border border-success-200/50 bg-success-500/10 text-success-400;
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border border-danger-200/50 bg-danger-500/10 text-danger-400;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border border-yellow-200/50 bg-yellow-500/10 text-yellow-400;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border border-electric-200/50 bg-electric-500/10 text-electric-400;
+  }
+
+  /* Texte secondaire */
+  .text-secondary {
+    @apply text-white/50;
+  }
+
+  /* Titre de section */
+  .section-title {
+    @apply text-lg font-bold text-white tracking-tight;
+  }
+
+  /* Overlay de fond pour améliorer la lisibilité sur le fond étoilé */
+  .bg-overlay {
+    @apply bg-black/20 backdrop-blur-sm;
   }
 }
+
+/* ============================================================================
+   Utilitaires
+   ============================================================================ */
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Animation de flottaison légère pour les éléments décoratifs */
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .float-delayed {
+    animation: float 8s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Apparition progressive des cartes */
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Délais d'apparition progressifs */
+  .fade-delay-100 {
+    animation-delay: 100ms;
+  }
+  .fade-delay-200 {
+    animation-delay: 200ms;
+  }
+  .fade-delay-300 {
+    animation-delay: 300ms;
+  }
+  .fade-delay-400 {
+    animation-delay: 400ms;
+  }
+  .fade-delay-500 {
+    animation-delay: 500ms;
   }
 }

@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 /**
- * AdminLayout — Disposition de l'espace administrateur.
+ * AdminLayout — Disposition de l'espace administrateur (thème spatial).
  * N'est jamais rendue dans la navigation des utilisateurs ordinaires.
  * Le contrôle d'accès est effectué côté serveur (backend + RLS).
  */
@@ -30,27 +30,27 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Barre supérieure admin */}
-      <header className="bg-marine-900 text-white shadow-sm">
+    <div className="min-h-screen">
+      {/* Barre supérieure admin - glassmorphism */}
+      <header className="bg-space-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-electric-500 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-9 h-9 bg-gradient-to-br from-electric-500 to-marine-900 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(14,165,233,0.4)]">
                 <span className="text-white font-bold text-sm">J</span>
               </div>
               <span className="font-bold text-lg text-white tracking-tight">JASpay Admin</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-300 capitalize">
+              <span className="text-sm text-white/70 capitalize">
                 {user?.email}
               </span>
-              <span className="text-xs text-gray-400 bg-marine-800/50 px-2 py-1 rounded">
+              <span className="text-xs text-electric-300 bg-electric-500/10 px-2 py-1 rounded border border-electric-500/20">
                 {userRoles.length > 0 ? userRoles.join(', ') : 'admin'}
               </span>
               <button
                 onClick={hookSignOut}
-                className="text-sm hover:text-electric-400 transition-colors"
+                className="text-sm text-white/70 hover:text-electric-400 transition-colors"
               >
                 Déconnexion
               </button>
@@ -60,8 +60,8 @@ export default function AdminLayout() {
       </header>
 
       <div className="flex flex-1">
-        {/* Sidebar */}
-        <aside className="hidden w-64 bg-white border-r border-gray-200 flex-col">
+        {/* Sidebar - glassmorphism flottante */}
+        <aside className="hidden w-64 bg-white/5 border-r border-white/10 backdrop-blur-md flex-col z-30">
           <div className="p-4">
             <nav className="space-y-1">
               {sidebarItems.map((item) => {
@@ -71,13 +71,13 @@ export default function AdminLayout() {
                   <a
                     key={item.path}
                     href={item.path}
-                    className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? 'bg-marine-50 text-marine-900 font-medium'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-marine-900'
+                        ? 'bg-white/10 text-white border border-electric-500/30 shadow-[0_0_15px_rgba(14,165,233,0.15)]'
+                        : 'text-white/50 hover:text-white hover:bg-white/5 hover:border-white/10'
                     }`}
                   >
-                    <span>{item.icon}</span>
+                    <span className="w-6 text-center">{item.icon}</span>
                     <span>{item.label}</span>
                   </a>
                 );
