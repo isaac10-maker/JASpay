@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3001/api';
+import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -17,6 +17,12 @@ export default function AdminUsers() {
 
   const ROLES = ['super_admin', 'admin', 'agent', 'moderator', 'user'];
 
+  // Récupérer le token JWT depuis la session Supabase
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
+
   useEffect(() => {
     loadUsers();
   }, [search, filterRole, filterActive]);
@@ -25,24 +31,26 @@ export default function AdminUsers() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
+      const token = await getToken();
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (filterRole !== 'all') params.set('role', filterRole);
       if (filterActive !== 'all') params.set('is_active', filterActive);
 
-      const res = await fetch(`${API_BASE}/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users?${params}`,
+        'GET'
+      );
 
-      if (res.status === 401 || res.status === 403) {
-        navigate('/login', { replace: true });
-        return;
+      if (err) {
+        if (err.status === 401 || err.status === 403) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        throw new Error(err.message || 'Erreur lors du chargement des utilisateurs.');
       }
 
-      if (!res.ok) throw new Error('Erreur lors du chargement des utilisateurs.');
-
-      const data = await res.json();
       setUsers(data.users || []);
     } catch (err) {
       setError(err.message || 'Erreur inattendue.');
@@ -53,12 +61,14 @@ export default function AdminUsers() {
 
   const loadUserDetail = async (userId) => {
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Erreur lors du chargement du profil.');
-      const data = await res.json();
+      const token = await getToken();
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}`,
+        'GET'
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors du chargement du profil.');
       setUserDetail(data);
     } catch (err) {
       setError(err.message || 'Erreur lors du chargement du profil.');
@@ -68,15 +78,13 @@ export default function AdminUsers() {
   const handleSuspend = async (userId, email) => {
     if (!window.confirm(`Voulez-vous vraiment suspendre le compte ${email} ?`)) return;
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/suspend`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la suspension.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}/suspend`,
+        'POST'
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la suspension.');
       setSuccess('Compte suspendu.');
       setError('');
       await loadUsers();
@@ -88,15 +96,13 @@ export default function AdminUsers() {
   const handleReactivate = async (userId, email) => {
     if (!window.confirm(`Voulez-vous vraiment réactiver le compte ${email} ?`)) return;
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/reactivate`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la réactivation.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}/reactivate`,
+        'POST'
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la réactivation.');
       setSuccess('Compte réactivé.');
       setError('');
       await loadUsers();
@@ -108,15 +114,13 @@ export default function AdminUsers() {
   const handleDelete = async (userId, email) => {
     if (!window.confirm(`ATTENTION : Voulez-vous vraiment supprimer définitivement le compte ${email} ? Cette action est irréversible.`)) return;
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la suppression.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}`,
+        'DELETE'
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la suppression.');
       setSuccess('Compte supprimé.');
       setError('');
       setViewingUserId(null);
@@ -129,19 +133,14 @@ export default function AdminUsers() {
 
   const handleAssignRole = async (userId, role) => {
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/roles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ role }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de l\'attribution du rôle.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}/roles`,
+        'POST',
+        { role }
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de l\'attribution du rôle.');
       setSuccess('Rôle attribué.');
       setError('');
       await loadUsers();
@@ -153,15 +152,13 @@ export default function AdminUsers() {
 
   const handleRevokeRole = async (userId, role) => {
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/roles/${role}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la révocation du rôle.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        `/api/admin/users/${userId}/roles/${role}`,
+        'DELETE'
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la révocation du rôle.');
       setSuccess('Rôle révoqué.');
       setError('');
       await loadUsers();

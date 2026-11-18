@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 const STEPS = {
   BOOKMAKER: 'bookmaker',
@@ -49,8 +50,8 @@ export default function Deposit() {
 
   const loadBookmakers = async () => {
     try {
-      const res = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/bookmakers`);
-      const data = await res.json();
+      const { data, error } = await invokeEdge('jaspay-config', '/api/bookmakers', 'GET');
+      if (error) throw error;
       setBookmakers(data.bookmakers || []);
     } catch (err) {
       const { data, error } = await supabase
@@ -64,8 +65,8 @@ export default function Deposit() {
 
   const loadProviders = async () => {
     try {
-      const res = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/payment-providers`);
-      const data = await res.json();
+      const { data, error } = await invokeEdge('jaspay-config', '/api/payment-providers', 'GET');
+      if (error) throw error;
       setProviders(data.providers || []);
     } catch (err) {
       const { data, error } = await supabase
@@ -78,8 +79,12 @@ export default function Deposit() {
 
   const loadPaymentMethods = async (bookmakerId) => {
     try {
-      const res = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/payment-methods?bookmakerId=${bookmakerId}`);
-      const data = await res.json();
+      const { data, error } = await invokeEdge(
+        'jaspay-config',
+        `/api/payment-methods?bookmakerId=${bookmakerId}`,
+        'GET'
+      );
+      if (error) throw error;
       setPaymentMethods(data.methods || []);
     } catch (err) {
       const { data, error } = await supabase
@@ -102,24 +107,13 @@ export default function Deposit() {
 
   const generateReference = async (transactionType) => {
     try {
-      const session = await supabase.auth.getSession();
-      const res = await fetch(
-        `${window.location.origin.replace(':5173', ':3001')}/api/transactions/reference`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.data.session?.access_token || ''}`,
-          },
-          body: JSON.stringify({ transaction_type: transactionType }),
-        }
+      const { data, error } = await invokeEdge(
+        'jaspay-transactions',
+        '/api/transactions/reference',
+        'POST',
+        { transaction_type: transactionType }
       );
-
-      if (!res.ok) {
-        throw new Error('Impossible de générer la référence de transaction.');
-      }
-
-      const data = await res.json();
+      if (error) throw error;
       setForm((prev) => ({ ...prev, transaction_reference: data.transaction_reference }));
     } catch (err) {
       setError(err.message || 'Erreur lors de la génération de la référence.');
@@ -158,14 +152,11 @@ export default function Deposit() {
         await generateReference('deposit');
       }
 
-      const session = await supabase.auth.getSession();
-      const res = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/transactions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.data.session?.access_token || ''}`,
-        },
-        body: JSON.stringify({
+      const { data: txData, error: txError } = await invokeEdge(
+        'jaspay-transactions',
+        '/api/transactions',
+        'POST',
+        {
           transaction_reference: form.transaction_reference,
           transaction_type: 'deposit',
           bookmaker_id: form.bookmaker_id,
@@ -174,14 +165,10 @@ export default function Deposit() {
           currency: 'XOF',
           payment_provider_id: form.payment_provider_id,
           phone_number: form.phone_number,
-        }),
-      });
+        }
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de la création de la demande.');
-      }
+      if (txError) throw txError;
 
       setSuccess(true);
       setStep(STEPS.CONFIRMATION);

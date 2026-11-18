@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3001/api';
+import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 const TYPE_LABELS = {
   info: 'Information',
@@ -10,21 +10,12 @@ const TYPE_LABELS = {
   success: 'Succès',
 };
 
-const TYPE_COLORS = {
-  info: 'bg-blue-50 text-blue-600 border border-blue-100',
-  warning: 'bg-orange-50 text-orange-600 border border-orange-100',
-  error: 'bg-red-50 text-red-600 border border-red-100',
-  success: 'bg-success-50 text-success-600 border border-success-100',
-};
-
 export default function AdminAnnouncements() {
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Formulaire
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
@@ -36,6 +27,11 @@ export default function AdminAnnouncements() {
     ends_at: '',
   });
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
+
   useEffect(() => {
     loadAnnouncements();
   }, []);
@@ -44,19 +40,20 @@ export default function AdminAnnouncements() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/announcements`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        '/api/admin/announcements',
+        'GET'
+      );
 
-      if (res.status === 401 || res.status === 403) {
-        navigate('/login', { replace: true });
-        return;
+      if (err) {
+        if (err.status === 401 || err.status === 403) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        throw new Error(err.message || 'Erreur lors du chargement des annonces.');
       }
 
-      if (!res.ok) throw new Error('Erreur lors du chargement des annonces.');
-
-      const data = await res.json();
       setAnnouncements(data.announcements || []);
     } catch (err) {
       setError(err.message || 'Erreur inattendue.');
@@ -83,7 +80,6 @@ export default function AdminAnnouncements() {
     setError('');
 
     try {
-      const token = localStorage.getItem('jaspay_token');
       const payload = {
         title: form.title,
         content: form.content,
@@ -93,28 +89,21 @@ export default function AdminAnnouncements() {
         ends_at: form.ends_at || null,
       };
 
-      const res = isEditing && editingId
-        ? await fetch(`${API_BASE}/admin/announcements/${editingId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-          })
-        : await fetch(`${API_BASE}/admin/announcements`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-          });
+      const { data, error: err } = isEditing && editingId
+        ? await invokeEdge(
+            'jaspay-admin-config',
+            `/api/admin/announcements/${editingId}`,
+            'PUT',
+            payload
+          )
+        : await invokeEdge(
+            'jaspay-admin-config',
+            '/api/admin/announcements',
+            'POST',
+            payload
+          );
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de l\'enregistrement.');
-      }
+      if (err) throw new Error(err.message || 'Erreur lors de l\'enregistrement.');
 
       setSuccess(isEditing ? 'Annonce modifiée.' : 'Annonce créée.');
       resetForm();
@@ -138,23 +127,17 @@ export default function AdminAnnouncements() {
   };
 
   const handleToggleActive = async (id, currentActive, title) => {
-    if (!window.confirm(`Voulez-vous vraiment ${currentActive ? 'dépublicer' : 'publier'} l'annonce "${title}" ?`)) return;
+    if (!window.confirm(`Voulez-vous vraiment ${currentActive ? 'dépublicer' : 'publier'} l'annonce \"${title}\" ?`)) return;
 
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/announcements/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ is_active: !currentActive }),
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        `/api/admin/announcements/${id}`,
+        'PUT',
+        { is_active: !currentActive }
+      );
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors du changement de statut.');
-      }
+      if (err) throw new Error(err.message || 'Erreur lors du changement de statut.');
 
       setSuccess(`Annonce ${!currentActive ? 'publiée' : 'dépubliée'}.`);
       await loadAnnouncements();
@@ -164,35 +147,22 @@ export default function AdminAnnouncements() {
   };
 
   const handleArchive = async (id, title) => {
-    if (!window.confirm(`ATTENTION : Voulez-vous vraiment archiver définitivement l'annonce "${title}" ? Cette action est irréversible.`)) return;
+    if (!window.confirm(`ATTENTION : Voulez-vous vraiment archiver définitivement l'annonce \"${title}\" ? Cette action est irréversible.`)) return;
 
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/announcements/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        `/api/admin/announcements/${id}`,
+        'DELETE'
+      );
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de l\'archivage.');
-      }
+      if (err) throw new Error(err.message || 'Erreur lors de l\'archivage.');
 
       setSuccess('Annonce archivée.');
       await loadAnnouncements();
     } catch (err) {
       setError(err.message || 'Erreur inattendue.');
     }
-  };
-
-  const isExpired = (endsAt) => {
-    if (!endsAt) return false;
-    return new Date(endsAt) < new Date();
-  };
-
-  const isScheduled = (startsAt) => {
-    if (!startsAt) return false;
-    return new Date(startsAt) > new Date();
   };
 
   if (loading) {
@@ -207,17 +177,11 @@ export default function AdminAnnouncements() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-marine-900">Annonces de la plateforme</h1>
+          <h1 className="text-2xl font-bold text-marine-900">Gestion des annonces</h1>
           <p className="text-gray-600">
-            Diffusez des informations, alertes et messages aux utilisateurs de JASpay.
+            Créez, modifiez et archivez les annonces affichées aux utilisateurs.
           </p>
         </div>
-        <button
-          onClick={resetForm}
-          className="mt-4 md:mt-0 btn-primary"
-        >
-          {isEditing ? 'Nouvelle annonce' : 'Créer une annonce'}
-        </button>
       </div>
 
       {error && (
@@ -232,217 +196,142 @@ export default function AdminAnnouncements() {
         </div>
       )}
 
-      {/* Formulaire de création / modification */}
+      {/* Formulaire */}
       <div className="card p-6">
         <h2 className="text-lg font-bold text-marine-900 mb-4">
-          {isEditing ? 'Modifier l\'annonce' : 'Créer une nouvelle annonce'}
+          {isEditing ? 'Modifier l\'annonce' : 'Créer une annonce'}
         </h2>
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Titre *</label>
-              <input
-                type="text"
-                className="input-field w-full"
-                placeholder="Ex: Maintenance programmée"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-                maxLength="200"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Type</label>
-              <select
-                className="input-field w-full"
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-              >
-                {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Contenu *</label>
+            <label className="block text-sm font-medium text-gray-700">Titre</label>
+            <input
+              type="text"
+              className="input-field w-full"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Contenu</label>
             <textarea
               className="input-field w-full"
-              rows="4"
-              placeholder="Message à afficher aux utilisateurs..."
+              rows={4}
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
               required
             />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Type</label>
+            <select
+              className="input-field w-full"
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+            >
+              {Object.entries(TYPE_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Date de début</label>
+              <label className="block text-sm font-medium text-gray-700">Début</label>
               <input
                 type="datetime-local"
                 className="input-field w-full"
                 value={form.starts_at}
                 onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
               />
-              <p className="text-xs text-gray-500">
-                Laisser vide pour publication immédiate.
-              </p>
             </div>
-
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Date d'expiration</label>
+              <label className="block text-sm font-medium text-gray-700">Fin</label>
               <input
                 type="datetime-local"
                 className="input-field w-full"
                 value={form.ends_at}
                 onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
               />
-              <p className="text-xs text-gray-500">
-                Laisser vue pour pas d'expiration.
-              </p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={form.is_active}
-                onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
-              />
-              <label className="text-sm text-gray-700 leading-none">Actif / publié</label>
             </div>
           </div>
-
-          <button type="submit" className="btn-primary w-auto">
-            {isEditing ? 'Enregistrer les modifications' : 'Créer l\'annonce'}
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={form.is_active}
+              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+              className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+            />
+            <label className="text-sm text-gray-700 leading-none">Active</label>
+          </div>
+          <button type="submit" className="btn-primary w-full">
+            {isEditing ? 'Modifier' : 'Créer'}
           </button>
-          <button
-            type="button"
-            onClick={resetForm}
-            className="text-sm text-gray-500 hover:text-gray-700 ml-3"
-            disabled={!isEditing}
-          >
-            Annuler
-          </button>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="btn-secondary w-full"
+            >
+              Annuler
+            </button>
+          )}
         </form>
       </div>
 
       {/* Liste des annonces */}
       <div className="card p-6">
         <h2 className="text-lg font-bold text-marine-900 mb-4">Annonces existantes</h2>
-
         {announcements.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Aucune annonce configurée.</p>
-          </div>
+          <p className="text-center text-gray-500 py-8">Aucune annonce.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Titre</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Type</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Période</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Créé le</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {announcements.map((a) => {
-                  const expired = isExpired(a.ends_at);
-                  const scheduled = isScheduled(a.starts_at);
-                  const status = !a.is_active ? 'Dépubliée' : expired ? 'Expirée' : scheduled ? 'Programmée' : 'Active';
-                  return (
-                    <tr key={a.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-700 font-medium">{a.title}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${TYPE_COLORS[a.type] || TYPE_COLORS.info}`}>
-                          {TYPE_LABELS[a.type] || a.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                          a.is_active && !expired && !scheduled
-                            ? 'bg-success-50 text-success-600 border border-success-100'
-                            : !a.is_active
-                              ? 'bg-red-50 text-red-600 border border-red-100'
-                              : 'bg-gray-50 text-gray-600 border border-gray-100'
-                        }`}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        <div className="text-xs">
-                          {a.starts_at ? `Début : ${new Date(a.starts_at).toLocaleString('fr-FR')}` : 'Immédiat'}
-                          {a.ends_at ? (
-                            <>
-                              <br />
-                              Fin : {new Date(a.ends_at).toLocaleString('fr-FR')}
-                            </>
-                          ) : (
-                            <span className="text-gray-400 ml-2">— pas d'expiration —</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(a.created_at).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => handleEdit(a)}
-                            className="text-xs text-electric-500 hover:text-electric-600 font-medium"
-                          >
-                            Modifier
-                          </button>
-                          {a.is_active ? (
-                            <button
-                              onClick={() => handleToggleActive(a.id, true, a.title)}
-                              className="text-xs text-orange-600 hover:text-orange-700 font-medium"
-                            >
-                              Dépublicer
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleToggleActive(a.id, false, a.title)}
-                              className="text-xs text-green-600 hover:text-green-700 font-medium"
-                            >
-                              Publier
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleArchive(a.id, a.title)}
-                            className="text-xs text-danger hover:text-danger/80 font-medium"
-                          >
-                            Archiver
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {announcements.map((a) => (
+              <div key={a.id} className="flex justify-between items-center p-4 border border-gray-100 rounded-lg bg-gray-50">
+                <div>
+                  <h3 className="font-bold text-marine-900">{a.title}</h3>
+                  <p className="text-sm text-gray-600">{a.content}</p>
+                  <div className="flex gap-3 text-xs mt-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                      a.type === 'info' ? 'bg-blue-50 text-blue-600' :
+                      a.type === 'warning' ? 'bg-yellow-50 text-yellow-600' :
+                      a.type === 'error' ? 'bg-red-50 text-red-600' :
+                      'bg-success-50 text-success-600'
+                    }`}>
+                      {TYPE_LABELS[a.type] || a.type}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                      a.is_active ? 'bg-success-50 text-success-600' :
+                      'bg-gray-50 text-gray-600'
+                    }`}>
+                      {a.is_active ? 'Actif' : 'Inactif'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(a)}
+                    className="text-xs text-electric-500 hover:text-electric-600 font-medium"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handleToggleActive(a.id, a.is_active, a.title)}
+                    className="text-xs font-medium"
+                    style={{ color: a.is_active ? '#dc2626' : '#16a34a' }}
+                  >
+                    {a.is_active ? 'Dépublicer' : 'Publier'}
+                  </button>
+                  <button
+                    onClick={() => handleArchive(a.id, a.title)}
+                    className="text-xs text-danger hover:text-danger/80 font-medium"
+                  >
+                    Archiver
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </div>
-
-      <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-        <p className="font-medium text-marine-900 mb-2">Règles de publication</p>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Seuls les super administrateurs et administrateurs peuvent créer, modifier et archiver des annonces.</li>
-          <li>Une annonce archivée est définitivement supprimée (pas de restauration).</li>
-          <li>Les dates de début et d'expiration contrôlent l'affichage aux utilisateurs.</li>
-          <li>Toute modification est journalisée dans l'historique des actions administratives.</li>
-        </ul>
       </div>
     </div>
   );

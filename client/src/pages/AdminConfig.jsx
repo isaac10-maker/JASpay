@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3001/api';
+import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 export default function AdminConfig() {
   const navigate = useNavigate();
@@ -19,38 +19,31 @@ export default function AdminConfig() {
   const [newProvider, setNewProvider] = useState({ name: '', technical_id: '', is_active: true, supports_deposit: true, supports_withdrawal: true, ussd_instructions: '' });
   const [newSetting, setNewSetting] = useState({ setting_key: '', setting_value: {}, description: '', is_public: false });
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Récupérer le token JWT depuis la session Supabase
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
 
   const loadAll = async () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
-
       const [bmRes, provRes, setRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/bookmakers`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/payment-providers`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/settings`, { headers: { Authorization: `Bearer ${token}` } }),
+        invokeEdge('jaspay-admin-config', '/api/admin/bookmakers', 'GET'),
+        invokeEdge('jaspay-admin-config', '/api/admin/payment-providers', 'GET'),
+        invokeEdge('jaspay-admin-config', '/api/admin/settings', 'GET'),
       ]);
 
-      if (bmRes.status === 401 || bmRes.status === 403) {
-        navigate('/login', { replace: true });
-        return;
-      }
+      if (bmRes.error) throw new Error(bmRes.error.message || 'Erreur chargement bookmakers.');
+      if (provRes.error) throw new Error(provRes.error.message || 'Erreur chargement opérateurs.');
+      if (setRes.error) throw new Error(setRes.error.message || 'Erreur chargement paramètres.');
 
-      if (!bmRes.ok) throw new Error('Erreur chargement bookmakers.');
-      if (!provRes.ok) throw new Error('Erreur chargement opérateurs.');
-      if (!setRes.ok) throw new Error('Erreur chargement paramètres.');
-
-      const bmData = await bmRes.json();
-      const provData = await provRes.json();
-      const setData = await setRes.json();
-
-      setBookmakers(bmData.bookmakers || []);
-      setProviders(provData.providers || []);
-      setSettings(setData.settings || []);
+      setBookmakers(bmRes.data.bookmakers || []);
+      setProviders(provRes.data.providers || []);
+      setSettings(setRes.data.settings || []);
     } catch (err) {
       setError(err.message || 'Erreur inattendue.');
     } finally {
@@ -58,23 +51,22 @@ export default function AdminConfig() {
     }
   };
 
+  useEffect(() => {
+    loadAll();
+  }, [activeTab]);
+
   const handleAddBookmaker = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/bookmakers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newBookmaker),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la création.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        '/api/admin/bookmakers',
+        'POST',
+        newBookmaker
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la création.');
       setSuccessMsg('Bookmaker créé.');
       setNewBookmaker({ name: '', technical_id: '', logo_url: '', is_active: true, display_order: 0 });
       await loadAll();
@@ -87,19 +79,14 @@ export default function AdminConfig() {
     e.preventDefault();
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/payment-providers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newProvider),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la création.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        '/api/admin/payment-providers',
+        'POST',
+        newProvider
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la création.');
       setSuccessMsg('Opérateur créé.');
       setNewProvider({ name: '', technical_id: '', is_active: true, supports_deposit: true, supports_withdrawal: true, ussd_instructions: '' });
       await loadAll();
@@ -112,19 +99,14 @@ export default function AdminConfig() {
     e.preventDefault();
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newSetting),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors de la création.');
-      }
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-config',
+        '/api/admin/settings',
+        'POST',
+        newSetting
+      );
+
+      if (err) throw new Error(err.message || 'Erreur lors de la création.');
       setSuccessMsg('Paramètre créé.');
       setNewSetting({ setting_key: '', setting_value: {}, description: '', is_public: false });
       await loadAll();
@@ -132,8 +114,6 @@ export default function AdminConfig() {
       setError(err.message || 'Erreur inattendue.');
     }
   };
-
-  const [successMsg, setSuccessMsg] = useState('');
 
   if (loading) {
     return (
@@ -208,8 +188,7 @@ export default function AdminConfig() {
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             b.is_active ? 'bg-success-50 text-success-600 border border-success-100' :
                             'bg-red-50 text-red-600 border border-red-100'
-                          }`}
-                          >
+                          }`}>
                             {b.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
@@ -301,8 +280,7 @@ export default function AdminConfig() {
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.supports_deposit ? 'bg-success-50 text-success-600 border border-success-100' :
                             'bg-red-50 text-red-600 border border-red-100'
-                          }`}
-                          >
+                          }`}>
                             {p.supports_deposit ? 'Oui' : 'Non'}
                           </span>
                         </td>
@@ -310,8 +288,7 @@ export default function AdminConfig() {
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.supports_withdrawal ? 'bg-success-50 text-success-600 border border-success-100' :
                             'bg-red-50 text-red-600 border border-red-100'
-                          }`}
-                          >
+                          }`}>
                             {p.supports_withdrawal ? 'Oui' : 'Non'}
                           </span>
                         </td>
@@ -319,8 +296,7 @@ export default function AdminConfig() {
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.is_active ? 'bg-success-50 text-success-600 border border-success-100' :
                             'bg-red-50 text-red-600 border border-red-100'
-                          }`}
-                          >
+                          }`}>
                             {p.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
@@ -357,16 +333,6 @@ export default function AdminConfig() {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Instructions USSD (optionnel)</label>
-                <textarea
-                  className="input-field"
-                  rows="3"
-                  placeholder="Aucune syntaxe USSD inventée — configurée après vérification officielle"
-                  value={newProvider.ussd_instructions}
-                  onChange={(e) => setNewProvider({ ...newProvider, ussd_instructions: e.target.value })}
-                />
-              </div>
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
@@ -374,7 +340,7 @@ export default function AdminConfig() {
                   onChange={(e) => setNewProvider({ ...newProvider, supports_deposit: e.target.checked })}
                   className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Accepte les dépôts</label>
+                <label className="text-sm text-gray-700 leading-none">Dépôt</label>
               </div>
               <div className="flex items-start gap-3">
                 <input
@@ -383,7 +349,7 @@ export default function AdminConfig() {
                   onChange={(e) => setNewProvider({ ...newProvider, supports_withdrawal: e.target.checked })}
                   className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Accepte les retraits</label>
+                <label className="text-sm text-gray-700 leading-none">Retrait</label>
               </div>
               <div className="flex items-start gap-3">
                 <input
@@ -398,9 +364,6 @@ export default function AdminConfig() {
                 Créer l'opérateur
               </button>
             </form>
-            <p className="text-xs text-gray-500 mt-3">
-              ⚠️ Aucune syntaxe USSD n'est inventée. Les instructions doivent être vérifiées auprès de l'opérateur avant activation.
-            </p>
           </div>
         </div>
       )}
@@ -417,29 +380,24 @@ export default function AdminConfig() {
                     <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Clé</th>
                     <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Valeur</th>
                     <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Public</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {settings.length === 0 ? (
-                    <tr><td colSpan="4" className="px-4 py-8 text-center text-gray-500">Aucun paramètre.</td></tr>
+                    <tr><td colSpan="3" className="px-4 py-8 text-center text-gray-500">Aucun paramètre.</td></tr>
                   ) : (
                     settings.map((s) => (
                       <tr key={s.id} className="border-b border-gray-100">
-                        <td className="px-4 py-3 text-sm font-mono text-gray-700">{s.setting_key}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 break-all">
-                          {JSON.stringify(s.setting_value).slice(0, 50)}{JSON.stringify(s.setting_value).length > 50 ? '…' : ''}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700 font-mono">{s.setting_key}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{JSON.stringify(s.setting_value)}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             s.is_public ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
-                          }`}
-                          >
+                            'bg-gray-50 text-gray-600 border border-gray-100'
+                          }`}>
                             {s.is_public ? 'Oui' : 'Non'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{s.description || '—'}</td>
                       </tr>
                     ))
                   )}
@@ -463,24 +421,11 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Valeur (JSON)</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder='Ex: {"enabled": true}'
-                  value={JSON.stringify(newSetting.setting_value)}
-                  onChange={(e) => {
-                    try {
-                      setNewSetting({ ...newSetting, setting_value: JSON.parse(e.target.value || '{}') });
-                    } catch {}
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-600">Description</label>
                 <input
                   type="text"
                   className="input-field"
+                  placeholder="Description du paramètre"
                   value={newSetting.description}
                   onChange={(e) => setNewSetting({ ...newSetting, description: e.target.value })}
                 />
@@ -492,7 +437,7 @@ export default function AdminConfig() {
                   onChange={(e) => setNewSetting({ ...newSetting, is_public: e.target.checked })}
                   className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Visible par les utilisateurs</label>
+                <label className="text-sm text-gray-700 leading-none">Public</label>
               </div>
               <button type="submit" className="btn-primary w-full">
                 Créer le paramètre

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3001/api';
+import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -10,30 +10,32 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
+
   useEffect(() => {
     loadStats();
   }, []);
 
   const loadStats = async () => {
     try {
-      const token = localStorage.getItem('jaspay_token');
-      // Le token est géré par Supabase, on récupère la session
-      const res = await fetch(`${API_BASE}/admin/stats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const token = await getToken();
+      const { data, error: err } = await invokeEdge(
+        'jaspay-admin-users',
+        '/api/admin/stats',
+        'GET'
+      );
 
-      if (res.status === 401 || res.status === 403) {
-        navigate('/login', { replace: true });
-        return;
+      if (err) {
+        if (err.status === 401 || err.status === 403) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        throw new Error(err.message || 'Erreur lors du chargement des statistiques.');
       }
 
-      if (!res.ok) {
-        throw new Error('Erreur lors du chargement des statistiques.');
-      }
-
-      const data = await res.json();
       setStats(data.stats);
       setRecentActivity(data.recentActivity || []);
     } catch (err) {

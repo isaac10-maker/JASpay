@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3001/api';
+import { supabase } from '../lib/supabase';
+import { invokeEdge } from '../lib/edgeFunctions';
 
 const STATUS_LABELS = {
   pending: 'En attente',
@@ -34,26 +34,33 @@ export default function AdminTransactions() {
     loadTransactions();
   }, [filterStatus, isAgentView]);
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
+
   const loadTransactions = async () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('jaspay_token');
+      const token = await getToken();
       const params = new URLSearchParams();
       if (filterStatus !== 'all') params.set('status', filterStatus);
 
-      const res = await fetch(`${API_BASE}/agent/transactions?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-agent',
+        `/api/agent/transactions?${params}`,
+        'GET'
+      );
 
-      if (res.status === 401 || res.status === 403) {
-        navigate('/login', { replace: true });
-        return;
+      if (err) {
+        if (err.status === 401 || err.status === 403) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        throw new Error(err.message || 'Erreur lors du chargement des transactions.');
       }
 
-      if (!res.ok) throw new Error('Erreur lors du chargement des transactions.');
-
-      const data = await res.json();
       setTransactions(data.transactions || []);
     } catch (err) {
       setError(err.message || 'Erreur inattendue.');
@@ -64,20 +71,14 @@ export default function AdminTransactions() {
 
   const handleProcess = async (txId, newStatus, notes) => {
     try {
-      const token = localStorage.getItem('jaspay_token');
-      const res = await fetch(`${API_BASE}/agent/transactions/${txId}/process`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ new_status: newStatus, notes }),
-      });
+      const { data, error: err } = await invokeEdge(
+        'jaspay-agent',
+        `/api/agent/transactions/${txId}/process`,
+        'POST',
+        { new_status: newStatus, notes }
+      );
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erreur lors du traitement.');
-      }
+      if (err) throw new Error(err.message || 'Erreur lors du traitement.');
 
       setSuccess('Transaction traitée.');
       setError('');
