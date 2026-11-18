@@ -27,20 +27,20 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-offwhite px-4">
-      <div className="max-w-md w-full glass-panel p-8 md:p-12">
+    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
+      <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-marine-900 rounded-lg mb-4">
             <span className="text-white font-bold text-xl">J</span>
           </div>
-          <h1 className="text-2xl font-bold text-marine-900">JASpay</h1>
-          <p className="text-gray-600 mt-2">Connexion à votre espace personnel</p>
+          <h1 className="text-2xl font-bold text-white">JASpay</h1>
+          <p className="text-gray-300 mt-2">Connexion à votre espace personnel</p>
         </div>
 
         {/* Erreur */}
         {error && (
-          <div className="mb-6 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+          <div className="mb-6 p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
             {error}
           </div>
         )}
@@ -50,7 +50,7 @@ export default function Login() {
             <label className="label-text">Adresse e-mail</label>
             <input
               type="email"
-              className="input-field"
+              className="input-field input-field-dark"
               placeholder="vous@exemple.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -63,7 +63,7 @@ export default function Login() {
             <label className="label-text">Mot de passe</label>
             <input
               type="password"
-              className="input-field"
+              className="input-field input-field-dark"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -81,20 +81,20 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-400">
           Vous n'avez pas encore de compte ?
-          <a href="/register" className="text-electric-500 font-medium hover:underline">
+          <a href="/register" className="text-electric-400 font-medium hover:underline">
             Créez votre compte
           </a>
         </p>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          <a href="/forgot-password" className="text-electric-500 font-medium hover:underline">
+        <p className="mt-4 text-center text-sm text-gray-400">
+          <a href="/forgot-password" className="text-electric-400 font-medium hover:underline">
             Mot de passe oublié ?
           </a>
         </p>
 
-        <div className="mt-8 pt-6 border-t border-gray-100">
+        <div className="mt-8 pt-6 border-t border-white/20">
           <p className="text-xs text-gray-500 text-center">
             JASpay utilise Supabase Auth pour sécuriser votre connexion.
             Votre mot de passe est haché de manière sécurisée et jamais stocké en clair.

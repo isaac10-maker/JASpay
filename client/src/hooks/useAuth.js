@@ -85,6 +85,15 @@ export function useAuth() {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    if (error) {
+      console.error('[useAuth.signUp] Erreur Supabase Auth :', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        details: error.details,
+        name: error.name,
+      });
+    }
     return { data, error };
   };
 
@@ -93,6 +102,15 @@ export function useAuth() {
       email,
       password,
     });
+    if (error) {
+      console.error('[useAuth.signIn] Erreur Supabase Auth :', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        details: error.details,
+        name: error.name,
+      });
+    }
     return { data, error };
   };
 
