@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <!-- Court de tennis -->
+  <rect x="10" y="10" width="180" height="180" rx="12" fill="#dc2626" opacity="0.1"/>
+  <!-- Filet -->
+  <path d="M10 100 L190 100" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Balles de tennis -->
+  <circle cx="40" cy="40" r="8" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="160" cy="160" r="8" fill="#fbbf24" opacity="0.9"/>
+  <!-- Raquette stylisée -->
+  <path d="M100 40 L100 160 M40 100 L160 100" stroke="white" stroke-width="1" opacity="0.3"/>
+</svg>

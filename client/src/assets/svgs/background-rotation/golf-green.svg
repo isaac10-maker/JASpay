@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <!-- Green de golf -->
+  <rect x="10" y="10" width="180" height="180" rx="12" fill="#16a34a" opacity="0.15"/>
+  <!-- Drapeau -->
+  <path d="M100 180 L100 60 L120 90 L100 120 Z" fill="#dc2626" opacity="0.9"/>
+  <path d="M100 60 L100 50" stroke="white" stroke-width="1" opacity="0.5"/>
+  <!-- Trou -->
+  <circle cx="100" cy="90" r="6" fill="#0f172a" opacity="0.9"/>
+  <!-- Ballon de golf -->
+  <circle cx="110" cy="100" r="4" fill="#fbbf24" opacity="0.9"/>
+</svg>

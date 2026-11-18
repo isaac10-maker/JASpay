@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100" viewBox="0 0 400 100">
+  <!-- Overlay glitch texte — à utiliser avec CSS glitch.css -->
+  <text x="20" y="60" font-family="monospace" font-size="24" fill="#38bdf8" opacity="0.9">
+    JASpay
+  </text>
+</svg>

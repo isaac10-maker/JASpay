@@ -1,0 +1,32 @@
+/* ============================================================================
+   JASpay — Animation de flottaison légère
+   Utilisée pour les objets décoratifs (ballons, trophées, jetons)
+   Respect de prefers-reduced-motion
+   ============================================================================ */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.float-delayed {
+  animation: float 8s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* Respect de prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .float-delayed {
+    animation: none !important;
+  }
+}

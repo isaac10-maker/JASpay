@@ -1,0 +1,25 @@
+/* ============================================================================
+   JASpay — Rotation lente continue
+   Utilisée pour les éléments décoratifs tournants (optionnel)
+   Respect de prefers-reduced-motion
+   ============================================================================ */
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-slow {
+  animation: rotate-slow 20s linear infinite;
+}
+
+/* Respect de prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .rotate-slow {
+    animation: none !important;
+  }
+}

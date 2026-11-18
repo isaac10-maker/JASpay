@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <!-- Terrain de basketball -->
+  <rect x="10" y="10" width="180" height="180" rx="12" fill="#16a34a" opacity="0.1"/>
+  <!-- Ballon de basketball -->
+  <circle cx="100" cy="100" r="34" fill="#f97316" opacity="0.85"/>
+  <path d="M72 100 L128 100 M100 72 L100 128" stroke="white" stroke-width="3" opacity="0.9"/>
+  <circle cx="100" cy="100" r="6" fill="white"/>
+  <path d="M85 85 Q100 70 115 85" stroke="white" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M85 115 Q100 130 115 115" stroke="white" stroke-width="2" fill="none" opacity="0.7"/>
+</svg>

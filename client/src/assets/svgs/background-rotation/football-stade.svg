@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <!-- Stade stylisé -->
+  <rect x="20" y="80" width="160" height="60" rx="8" fill="#38bdf8" opacity="0.15"/>
+  <path d="M20 80 L20 140 L180 140 L180 80" stroke="#38bdf8" stroke-width="2" opacity="0.3"/>
+  <!-- Ballon de football -->
+  <circle cx="100" cy="100" r="24" fill="#38bdf8" opacity="0.9"/>
+  <path d="M82 100 L118 100 M100 82 L100 118" stroke="white" stroke-width="2" opacity="0.8"/>
+  <circle cx="100" cy="100" r="4" fill="white"/>
+</svg>

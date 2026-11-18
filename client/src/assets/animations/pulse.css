@@ -1,0 +1,26 @@
+/* ============================================================================
+   JASpay — Animation de pulsation (pulse)
+   Utilisée sur les boutons primaires au survol
+   Respect de prefers-reduced-motion
+   ============================================================================ */
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(14, 165, 233, 0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Respect de prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none !important;
+  }
+}
