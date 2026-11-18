@@ -82,18 +82,18 @@ export default function App() {
 
         <Routes>
           {/* Pages publiques */}
-          <Route path="/login" element={Login} />
-          <Route path="/register" element={Register} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Routes protégées (utilisateur connecté) */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={Dashboard} />
-            <Route path="/dashboard" element={Dashboard} />
-            <Route path="/depot" element={Deposit} />
-            <Route path="/retrait" element={Withdraw} />
-            <Route path="/transactions" element={Transactions} />
-            <Route path="/transactions/:id" element={TransactionDetail} />
-            <Route path="/saved-numbers" element={SavedNumbers} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/depot" element={<Deposit />} />
+            <Route path="/retrait" element={<Withdraw />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/transactions/:id" element={<TransactionDetail />} />
+            <Route path="/saved-numbers" element={<SavedNumbers />} />
           </Route>
 
           {/* Routes admin (layout AdminLayout, contrôle d'accès côté serveur + RLS) */}
@@ -104,12 +104,12 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="admin" element={AdminDashboard} />
-            <Route path="admin/users" element={AdminUsers} />
-            <Route path="admin/transactions" element={AdminTransactions} />
-            <Route path="admin/config" element={AdminConfig} />
-            <Route path="admin/announcements" element={AdminAnnouncements} />
-            <Route path="admin/audit" element={AdminSurveillance} />
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="admin/users" element={<AdminUsers />} />
+            <Route path="admin/transactions" element={<AdminTransactions />} />
+            <Route path="admin/config" element={<AdminConfig />} />
+            <Route path="admin/announcements" element={<AdminAnnouncements />} />
+            <Route path="admin/audit" element={<AdminSurveillance />} />
           </Route>
         </Routes>
       </div>
