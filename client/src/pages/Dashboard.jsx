@@ -1,48 +1,59 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import FloatingElements from '../components/FloatingElements';
 
 export default function Dashboard() {
-  const { user, profile, signOut, isAdmin, isAgent, isModerator } = useAuth();
+  const { user, profile, signOut, isAdmin, isSuperAdmin, isAgent, isModerator } = useAuth();
   const [stats, setStats] = useState({
     totalTransactions: 0,
     pendingTransactions: 0,
     validatedTransactions: 0,
     rejectedTransactions: 0,
   });
+  const [loading, setLoading] = useState(true);
+
+  const isAdminOrAgent = isSuperAdmin || isAdmin || isAgent || isModerator;
 
   useEffect(() => {
     const loadStats = async () => {
       if (!user) return;
       try {
-        const { count } = await supabase
-          .from('transactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-        setStats((prev) => ({ ...prev, totalTransactions: count || 0 }));
+        setLoading(true);
+        const queries = [
+          supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id),
+          supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'pending'),
+          supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'validated'),
+          supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'rejected'),
+        ];
 
-        const { count: pending } = await supabase
-          .from('transactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'pending');
-        setStats((prev) => ({ ...prev, pendingTransactions: pending || 0 }));
+        const results = await Promise.all(queries);
 
-        const { count: validated } = await supabase
-          .from('transactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'validated');
-        setStats((prev) => ({ ...prev, validatedTransactions: validated || 0 }));
-
-        const { count: rejected } = await supabase
-          .from('transactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'rejected');
-        setStats((prev) => ({ ...prev, rejectedTransactions: rejected || 0 }));
+        setStats({
+          totalTransactions: results[0].count || 0,
+          pendingTransactions: results[1].count || 0,
+          validatedTransactions: results[2].count || 0,
+          rejectedTransactions: results[3].count || 0,
+        });
       } catch (err) {
         console.error('[Dashboard] Erreur chargement statistiques :', err.message);
+      } finally {
+        setLoading(false);
       }
     };
     loadStats();
@@ -59,152 +70,303 @@ export default function Dashboard() {
   }[profile?.role || 'user'];
 
   return (
-    <div className="min-h-screen bg-offwhite">
+    <div className="min-h-screen bg-space-900 text-white relative overflow-hidden">
+      {/* Fond dégradé */}
+      <div className="fixed inset-0 z-[-1]">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0"
+        >
+          <defs>
+            <radialGradient id="heroGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#1e293b" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#090a0f" stopOpacity="1" />
+            </radialGradient>
+          </defs>
+          <rect width="100" height="100" fill="url(#heroGradient)" />
+        </svg>
+      </div>
+
+      {/* Éléments flottants décoratifs */}
+      <FloatingElements />
+
       {/* Navbar */}
-      <nav className="bg-marine-900/95 backdrop-blur-md border-b border-marine-900/30 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-electric-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">J</span>
+      <nav className="fixed top-0 left-0 right-0 z-50">
+        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-9 h-9 bg-gradient-to-br from-electric-500 to-marine-900 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(14,165,233,0.4)]">
+                  <span className="text-white font-bold text-sm">J</span>
+                </div>
+                <span className="font-bold text-xl text-white tracking-tight">JASpay</span>
               </div>
-              <span className="font-bold text-xl text-white tracking-tight">JASpay</span>
-            </div>
 
-            <div className="hidden md:flex items-center gap-6">
-              <a href="#" className="text-gray-300 hover:text-electric-400 transition-colors px-3 py-2 text-sm font-medium rounded-md">
-                Accueil
-              </a>
-              <a href="#" className="text-gray-300 hover:text-electric-400 transition-colors px-3 py-2 text-sm font-medium rounded-md">
-                Dépôt
-              </a>
-              <a href="#" className="text-gray-300 hover:text-electric-400 transition-colors px-3 py-2 text-sm font-medium rounded-md">
-                Retrait
-              </a>
-              <a href="#" className="text-gray-300 hover:text-electric-400 transition-colors px-3 py-2 text-sm font-medium rounded-md">
-                Mes transactions
-              </a>
-              <a href="#" className="text-gray-300 hover:text-electric-400 transition-colors px-3 py-2 text-sm font-medium rounded-md">
-                Assistance
-              </a>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex flex-col items-end">
-                <p className="text-sm font-medium text-white">{user?.email}</p>
-                <p className="text-xs text-gray-400 capitalize">{roleLabel}</p>
+              <div className="hidden md:flex items-center gap-2">
+                <a
+                  href="/"
+                  className="text-sm font-medium text-electric-400 px-4 py-2.5 rounded-lg bg-white/10 border border-electric-500/30 shadow-[0_0_15px_rgba(14,165,233,0.2)]"
+                >
+                  Accueil
+                </a>
+                <a
+                  href="/depot"
+                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
+                >
+                  Dépôt
+                </a>
+                <a
+                  href="/retrait"
+                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
+                >
+                  Retrait
+                </a>
+                <a
+                  href="/transactions"
+                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
+                >
+                  Mes transactions
+                </a>
+                <a
+                  href="/saved-numbers"
+                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
+                >
+                  Mes numéros
+                </a>
               </div>
-              <button
-                onClick={signOut}
-                className="btn-danger text-xs px-3 py-1.5"
-              >
-                Déconnexion
-              </button>
+              {isAdminOrAgent && (
+                <a
+                  href="/admin"
+                  className="text-sm font-medium text-electric-400 px-4 py-2.5 rounded-lg bg-white/10 border border-electric-500/30 shadow-[0_0_15px_rgba(14,165,233,0.2)]"
+                >
+                  Administration
+                </a>
+              )}
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex flex-col items-end">
+                  <p className="text-sm font-medium text-white">{user?.email}</p>
+                  <p className="text-xs text-gray-400 capitalize">
+                    {roleLabel}
+                  </p>
+                </div>
+                <button
+                  onClick={signOut}
+                  className="btn-danger text-xs px-3 py-1.5"
+                >
+                  Déconnexion
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-marine-900">Tableau de bord</h1>
-            <p className="text-gray-600">
-              Bienvenue {profile?.email || user?.email}, voici un aperçu de votre espace.
-            </p>
+      {/* Hero Section */}
+      <header className="relative z-10 pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center section-fade" style={{ animationDelay: '100ms' }}>
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-marine-900 rounded-2xl mb-6 border border-white/20 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
+            <span className="text-white font-bold text-2xl">J</span>
           </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            Bienvenue sur <span className="text-electric-400">JASpay</span>
+          </h1>
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Gérez vos dépôts et retraits vers vos comptes bookmaker en toute sécurité.
+            1xBet, MelBet, 1Win et Wallisbet — Mobile Money Mixx by Yas et Flooz.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button
+              onClick={() => (window.location.href = '/depot')}
+              className="btn-primary btn-heartbeat btn-scan px-8 py-4 text-lg"
+            >
+              Effectuer un dépôt
+            </button>
+            <button
+              onClick={() => (window.location.href = '/retrait')}
+              className="btn-secondary px-8 py-4 text-lg border-white/30"
+            >
+              Effectuer un retrait
+            </button>
+          </div>
+        </div>
+      </header>
 
-          {isAdmin || isAgent || isModerator ? (
+      {/* Statistiques */}
+      {!loading && (
+        <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 section-fade" style={{ animationDelay: '200ms' }}>
+            <div className="glass-panel p-6">
+              <p className="text-sm text-gray-400 uppercase tracking-wider font-semibold mb-2">Total opérations</p>
+              <p className="text-3xl font-bold text-white">{stats.totalTransactions}</p>
+            </div>
+            <div className="glass-panel p-6 border-electric-500/30">
+              <p className="text-sm text-electric-400 uppercase tracking-wider font-semibold mb-2">En attente</p>
+              <p className="text-3xl font-bold text-electric-400">{stats.pendingTransactions}</p>
+            </div>
+            <div className="glass-panel p-6 border-success-600/30">
+              <p className="text-sm text-success-400 uppercase tracking-wider font-semibold mb-2">Validées</p>
+              <p className="text-3xl font-bold text-success-400">{stats.validatedTransactions}</p>
+            </div>
+            <div className="glass-panel p-6 border-danger-600/30">
+              <p className="text-sm text-danger-400 uppercase tracking-wider font-semibold mb-2">Rejetées</p>
+              <p className="text-3xl font-bold text-danger-400">{stats.rejectedTransactions}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Quick Actions */}
+      <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-8 section-fade" style={{ animationDelay: '300ms' }}>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">Actions rapides</h2>
+            <p className="text-gray-400">Choisissez votre opération suivante</p>
+          </div>
+          {isAdminOrAgent && (
             <a
               href="/admin"
-              className="btn-secondary hidden sm:flex"
+              className="btn-secondary px-6 py-2.5 text-sm border-white/30"
             >
               Espace administration
             </a>
-          ) : null}
+          )}
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Total opérations</p>
-            <p className="text-3xl font-bold text-marine-900 mt-1">{stats.totalTransactions}</p>
-          </div>
-          <div className="card">
-            <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">En attente</p>
-            <p className="text-3xl font-bold text-electric-500 mt-1">{stats.pendingTransactions}</p>
-          </div>
-          <div className="card">
-            <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Validées</p>
-            <p className="text-3xl font-bold text-success-600 mt-1">{stats.validatedTransactions}</p>
-          </div>
-          <div className="card">
-            <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Rejetées</p>
-            <p className="text-3xl font-bold text-danger mt-1">{stats.rejectedTransactions}</p>
-          </div>
-        </div>
-
-        {/* Quick actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card bg-marine-900 text-white rounded-2xl p-8 relative overflow-hidden">
-            <div className="absolute right-0 top-0 -mt-10 -mr-10 w-32 h-32 bg-electric-500/10 rounded-full blur-3xl"></div>
-            <h3 className="text-xl font-bold mb-4">Effectuer un dépôt</h3>
-            <p className="text-gray-300 mb-6 text-sm">
-              Alimentez votre compte bookmaker via Mobile Money (Mixx by Yas, Flooz).
+          {/* Dépôt */}
+          <div
+            onClick={() => (window.location.href = '/depot')}
+            className="glass-panel-hover group cursor-pointer p-8 rounded-2xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/5 group-hover:from-white/10 transition-all"></div>
+            <div className="relative z-10 flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-electric-500/20 rounded-xl flex items-center justify-center border border-electric-500/30">
+                <svg className="w-6 h-6 text-electric-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3" />
+                </svg>
+              </div>
+              <span className="text-lg font-semibold text-white">Dépôt</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">Alimenter votre compte</h3>
+            <p className="text-gray-400 mb-6">
+              Déposez sur 1xBet, MelBet, 1Win ou Wallisbet via Mobile Money.
             </p>
-            <button
-              onClick={() => window.location.assign('/depot')}
-              className="btn-secondary w-full"
-            >
+            <button className="btn-primary w-full btn-scan">
               Déposer maintenant
             </button>
           </div>
 
-          <div className="card bg-marine-900 text-white rounded-2xl p-8 relative overflow-hidden">
-            <div className="absolute right-0 top-0 -mt-10 -mr-10 w-32 h-32 bg-success-600/10 rounded-full blur-3xl"></div>
-            <h3 className="text-xl font-bold mb-4">Effectuer un retrait</h3>
-            <p className="text-gray-300 mb-6 text-sm">
-              Retirez vos gains vers votre numéro Mobile Money enregistré.
+          {/* Retrait */}
+          <div
+            onClick={() => (window.location.href = '/retrait')}
+            className="glass-panel-hover group cursor-pointer p-8 rounded-2xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/5 group-hover:from-white/10 transition-all"></div>
+            <div className="relative z-10 flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-success-600/20 rounded-xl flex items-center justify-center border border-success-600/30">
+                <svg className="w-6 h-6 text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-lg font-semibold text-white">Retrait</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">Retirer vos gains</h3>
+            <p className="text-gray-400 mb-6">
+              Retirez vers votre numéro Mobile Money enregistré et vérifié.
             </p>
-            <button
-              onClick={() => window.location.assign('/retrait')}
-              className="btn-secondary w-full"
-            >
+            <button className="btn-primary w-full btn-scan">
               Retirer maintenant
             </button>
           </div>
 
-          <div className="card">
-            <h3 className="text-lg font-bold text-marine-900 mb-4">Vos numéros enregistrés</h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Gérez vos numéros Mobile Money pour vos prochaines opérations.
+          {/* Transactions */}
+          <div
+            onClick={() => (window.location.href = '/transactions')}
+            className="glass-panel-hover group cursor-pointer p-8 rounded-2xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/5 group-hover:from-white/10 transition-all"></div>
+            <div className="relative z-10 flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-marine-900/40 rounded-xl flex items-center justify-center border border-white/20">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002-2h2a2 2 0 002 2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <span className="text-lg font-semibold text-white">Historique</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">Mes transactions</h3>
+            <p className="text-gray-400 mb-6">
+              Suivez l'état de vos dépôts et retraits en temps réel.
             </p>
-            <button className="btn-secondary w-full">
-              Gérer les numéros
+            <button className="btn-primary w-full btn-scan">
+              Voir l'historique
             </button>
           </div>
         </div>
+      </section>
 
-        {/* Info section */}
-        <div className="mt-8 card">
-          <h3 className="text-lg font-bold text-marine-900 mb-4">Comment fonctionne JASpay</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3">
-              <span className="text-electric-500">1</span>
-              <p className="text-sm text-gray-600">Choisissez votre bookmaker (1xBet, MelBet, 1Win)</p>
+      {/* Comment fonctionne JASpay */}
+      <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
+        <div className="glass-panel p-8 md:p-12 rounded-2xl section-fade" style={{ animationDelay: '400ms' }}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Comment fonctionne JASpay ?</h2>
+              <p className="text-gray-400">Trois étapes simples pour vos opérations</p>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-electric-500">2</span>
-              <p className="text-sm text-gray-600">Saisissez le montant et votre numéro Mobile Money</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="w-16 h-16 bg-electric-500/20 rounded-full flex items-center justify-center mb-4 border border-electric-500/30">
+                <span className="text-electric-400 text-2xl font-bold">1</span>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3">Choisissez votre bookmaker</h3>
+              <p className="text-gray-400 text-sm">
+                1xBet, MelBet, 1Win ou Wallisbet — sélectionnez votre plateforme de paris.
+              </p>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-electric-500">3</span>
-              <p className="text-sm text-gray-600">Un agent valide votre demande après vérification</p>
+
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="w-16 h-16 bg-electric-500/20 rounded-full flex items-center justify-center mb-4 border border-electric-500/30">
+                <span className="text-electric-400 text-2xl font-bold">2</span>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3">Saisissez le montant et le numéro</h3>
+              <p className="text-gray-400 text-sm">
+                Indiquez le montant en XOF et votre numéro Mobile Money (Mixx by Yas ou Flooz).
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="w-16 h-16 bg-success-600/20 rounded-full flex items-center justify-center mb-4 border border-success-600/30">
+                <span className="text-success-400 text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3">Validation par un agent</h3>
+              <p className="text-gray-400 text-sm">
+                Un agent vérifie votre paiement et valide votre demande rapidement.
+              </p>
             </div>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* Pied de page */}
+      <footer className="z-10 border-t border-white/10 bg-space-900/50 px-4 py-8 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-gray-400">
+            JASpay — Plateforme de paiement sécurisée. Propulsé par Supabase.
+          </p>
+          <div className="flex gap-6">
+            <a href="/cgu" className="text-sm text-gray-400 hover:text-electric-400 transition-colors">
+              CGU
+            </a>
+            <a href="/confidentialite" className="text-sm text-gray-400 hover:text-electric-400 transition-colors">
+              Confidentialité
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

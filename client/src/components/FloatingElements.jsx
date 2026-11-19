@@ -1,0 +1,114 @@
+/**
+ * FloatingElements — Éléments décoratifs flottants en arrière-plan.
+ *
+ * Affiche les scènes sportives et les objets (ballons, trophées, jetons)
+ * avec des animations de flottement et de rotation douce.
+ * Utilise les ressources PNG créées à l'étape 3.
+ *
+ * Respect de prefers-reduced-motion : les animations se désactivent
+ * si l'utilisateur a demandé la réduction des mouvements.
+ */
+import { useEffect, useState } from 'react';
+
+const ELEMENTS = [
+  {
+    id: 'ball-football',
+    src: '/assets/images/objects/ball-football/ball-football.png',
+    alt: 'Ballon de football décoratif',
+    width: 120,
+    height: 66,
+    top: '10%',
+    left: '5%',
+    animation: 'float-slow',
+    delay: '0s',
+  },
+  {
+    id: 'ball-basketball',
+    src: '/assets/images/objects/ball-basketball/ball-basketball.png',
+    alt: 'Ballon de basketball décoratif',
+    width: 100,
+    height: 55,
+    top: '20%',
+    left: '85%',
+    animation: 'float-slow-delayed',
+    delay: '2s',
+  },
+  {
+    id: 'ball-tennis',
+    src: '/assets/images/objects/ball-tennis/ball-tennis.png',
+    alt: 'Balle de tennis décorative',
+    width: 60,
+    height: 33,
+    top: '45%',
+    left: '3%',
+    animation: 'float-slow',
+    delay: '4s',
+  },
+  {
+    id: 'ball-golf',
+    src: '/assets/images/objects/ball-golf/ball-golf.png',
+    alt: 'Balle de golf décorative',
+    width: 45,
+    height: 25,
+    top: '55%',
+    left: '90%',
+    animation: 'float-slow-delayed',
+    delay: '6s',
+  },
+  {
+    id: 'trophy-gold',
+    src: '/assets/images/objects/trophy-gold/trophy-gold.png',
+    alt: 'Trophée or décoratif',
+    width: 150,
+    height: 150,
+    top: '15%',
+    left: '50%',
+    animation: 'rotate-gentle',
+    delay: '1s',
+  },
+  {
+    id: 'chip-gold',
+    src: '/assets/images/objects/chip-gold/chip-gold.png',
+    alt: 'Jeton or décoratif',
+    width: 80,
+    height: 80,
+    top: '70%',
+    left: '10%',
+    animation: 'float-slow',
+    delay: '3s',
+  },
+];
+
+export default function FloatingElements() {
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mediaQuery.matches);
+    const handler = () => setReducedMotion(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      {ELEMENTS.map((el) => (
+        <img
+          key={el.id}
+          src={el.src}
+          alt={el.alt}
+          className={`absolute ${reducedMotion ? 'opacity-20' : el.animation} opacity-60`}
+          style={{
+            top: el.top,
+            left: el.left,
+            width: `${el.width}px`,
+            height: `${el.height}px`,
+            animationDelay: reducedMotion ? '0s' : el.delay,
+          }}
+          loading="lazy"
+          decoding="async"
+        />
+      ))}
+    </div>
+  );
+}

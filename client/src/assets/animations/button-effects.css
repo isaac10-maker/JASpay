@@ -1,0 +1,134 @@
+/* ============================================================================
+   JASpay — Animations de boutons (Phase 2 — Refonte visuelle page d'accueil)
+   Battement (pulse), lumière translucide (scan/sweep), flottement
+   Respect de prefers-reduced-motion
+   ============================================================================ */
+
+/* Battement du bouton — échelle qui pulsifie doucement */
+@keyframes btn-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.03);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.03);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.btn-heartbeat {
+  animation: btn-heartbeat 2.5s ease-in-out infinite;
+}
+
+/* Lumière translucide qui traverse le bouton (effet scan) */
+@keyframes btn-scan {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  40% {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.btn-scan::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: btn-scan 3s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Flottement doux pour les éléments décoratifs */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(-1deg);
+  }
+}
+
+.float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+/* Flottement décalé pour les éléments secondaires */
+.float-slow-delayed {
+  animation: float-slow 9s ease-in-out infinite 2s;
+}
+
+/* Rotation douce pour les symboles décoratifs */
+@keyframes rotate-gentle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+.rotate-gentle {
+  animation: rotate-gentle 6s ease-in-out infinite;
+}
+
+/* Apparition progressive des sections */
+@keyframes section-fade {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-fade {
+  animation: section-fade 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* Respect de prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .btn-heartbeat,
+  .btn-scan::before,
+  .float-slow,
+  .float-slow-delayed,
+  .rotate-gentle,
+  .section-fade {
+    animation: none !important;
+  }
+  .btn-scan::before {
+    display: none;
+  }
+}
