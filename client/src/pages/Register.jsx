@@ -61,12 +61,12 @@ export default function Register() {
           <span className="text-white font-bold text-2xl">✓</span>
         </div>
         <h1 className="text-2xl font-bold text-white mb-4">Compte créé avec succès</h1>
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6 text-left">
-          <p className="text-blue-300 font-medium mb-2">📧 Vérifiez votre boîte e-mail</p>
-          <p className="text-sm text-gray-300 mb-2">
-            Un e-mail de confirmation a été envoyé à <span className="text-white font-medium">{email}</span>.
+        <div className="bg-blue-500/20 border border-blue-500/40 rounded-xl p-6 mb-6 text-left">
+          <p className="text-blue-400 font-medium mb-2">Vérifiez votre boîte e-mail</p>
+          <p className="text-sm text-white mb-2">
+            Un e-mail de confirmation a été envoyé à <span className="text-blue-100 font-medium">{email}</span>.
           </p>
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-blue-50">
             Cliquez sur le lien dans l'e-mail pour activer votre compte avant de pouvoir vous connecter.
           </p>
         </div>
