@@ -77,12 +77,18 @@ export function useAuth() {
 
   const hasRole = useCallback((role) => userRoles.includes(role), [userRoles]);
 
+  const getRedirectBase = () => {
+    const envUrl = import.meta.env.VITE_SITE_URL;
+    if (envUrl) return envUrl.replace(/\/$/, '');
+    return window.location.origin;
+  };
+
   const signUp = async (email, password) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${getRedirectBase()}/auth/callback`,
       },
     });
     if (error) {

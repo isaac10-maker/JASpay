@@ -57,23 +57,31 @@ export default function Register() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
         <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-success-600 rounded-lg mb-4">
-            <span className="text-white font-bold text-xl">✓</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white">Compte créé</h1>
-          <p className="text-gray-300 mt-2">
-            Un e-mail de confirmation a été envoyé à {email}.
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-success-600 rounded-full mb-6 shadow-[0_0_20px_rgba(22,163,74,0.4)]">
+          <span className="text-white font-bold text-2xl">✓</span>
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-4">Compte créé avec succès</h1>
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6 text-left">
+          <p className="text-blue-300 font-medium mb-2">📧 Vérifiez votre boîte e-mail</p>
+          <p className="text-sm text-gray-300 mb-2">
+            Un e-mail de confirmation a été envoyé à <span className="text-white font-medium">{email}</span>.
           </p>
-          <p className="text-sm text-gray-400 mt-4">
-            Veuillez consulter votre boîte de réception et cliquer sur le lien de confirmation
-            pour activer votre compte avant de pouvoir vous connecter.
+          <p className="text-sm text-gray-300">
+            Cliquez sur le lien dans l'e-mail pour activer votre compte avant de pouvoir vous connecter.
           </p>
-          <button
-            onClick={() => window.location.assign('/login')}
-            className="mt-6 btn-primary w-full"
-          >
-            Se connecter
-          </button>
+        </div>
+        <button
+          onClick={() => window.location.assign('/login')}
+          className="btn-primary w-full mb-4"
+        >
+          Se connecter
+        </button>
+        <button
+          onClick={() => window.location.assign('/login')}
+          className="btn-secondary w-full text-sm"
+        >
+          Je possède déjà un compte
+        </button>
         </div>
       </div>
     );
