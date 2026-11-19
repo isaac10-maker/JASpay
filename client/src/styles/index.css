@@ -107,11 +107,20 @@
 
   /* Champ de saisie sombre — pour les formulaires sur fond bleu nuit */
   .input-field-dark {
-    @apply w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
+    @apply w-full px-4 py-3 bg-space-800 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
   }
 
   .input-field-dark::placeholder {
-    color: rgba(156, 163, 175, 0.6);
+    color: rgba(156, 163, 175, 0.5);
+  }
+
+  /* Champ de saisie standard — fond sombre sur pages claires */
+  .input-field {
+    @apply w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-electric-500 focus:border-transparent transition-all;
+  }
+
+  .input-field::placeholder {
+    color: rgba(248, 250, 252, 0.4);
   }
 
   /* Correction autocomplétion Chrome — supprimer le fond jaune intrusif */
