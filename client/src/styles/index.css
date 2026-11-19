@@ -369,3 +369,107 @@ a:focus-visible {
     animation-delay: 500ms;
   }
 }
+
+/* ============================================================================
+   Responsive Global — Toutes les pages
+   ============================================================================ */
+
+/* Conteneur fluide avec padding adaptatif */
+.responsive-container {
+  @apply px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl;
+}
+
+/* Grille adaptative 1-4 colonnes */
+.responsive-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+/* Grille adaptative 1-2 colonnes */
+.responsive-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+/* Grille adaptative 1-3 colonnes */
+.responsive-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Ajustements formulaires sur mobile */
+@media (max-width: 640px) {
+  .responsive-form {
+    @apply px-3;
+  }
+
+  .responsive-card {
+    @apply p-6 rounded-2xl;
+  }
+
+  .btn-responsive {
+    @apply w-full px-4 py-3 text-sm;
+  }
+
+  .text-responsive-lg {
+    @apply text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-2xl;
+  }
+
+  /* Navbar mobile : cacher les liens texte, garder les boutons */
+  .nav-mobile-hide {
+    @apply hidden;
+  }
+
+  /* Pages auth : padding réduit */
+  .auth-page-mobile {
+    @apply px-3 py-4;
+  }
+
+  /* Hero section mobile */
+  .hero-title-mobile {
+    @apply text-3xl leading-tight;
+  }
+
+  .hero-subtitle-mobile {
+    @apply text-base leading-relaxed;
+  }
+}
+
+/* Ajustements tablette */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .responsive-card {
+    @apply p-8;
+  }
+
+  .btn-responsive {
+    @apply px-6 py-3 text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-3xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-4xl;
+  }
+}
+
+/* Ajustements desktop */
+@media (min-width: 1025px) {
+  .responsive-card {
+    @apply p-10 rounded-2xl;
+  }
+
+  .btn-responsive {
+    @apply px-8 py-4 text-lg;
+  }
+
+  .text-responsive-lg {
+    @apply text-4xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-5xl;
+  }
+}
