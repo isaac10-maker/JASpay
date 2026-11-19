@@ -5,6 +5,10 @@ import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import CGU from './pages/CGU';
+import Confidentialite from './pages/Confidentialite';
 import Dashboard from './pages/Dashboard';
 import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw';
@@ -84,6 +88,10 @@ export default function App() {
           {/* Pages publiques */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/cgu" element={<CGU />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
 
           {/* Routes protégées (utilisateur connecté) */}
           <Route element={<ProtectedRoute />}>

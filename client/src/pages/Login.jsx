@@ -1,25 +1,45 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { checkRateLimit, recordFailedAttempt } from '../lib/rateLimit';
+import PasswordToggle from '../components/PasswordToggle';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState('');
   const { signIn } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setRateLimitError('');
     setLoading(true);
+
+    // 1. Vérifier le rate limiting avant toute tentative Supabase
+    const rateLimit = await checkRateLimit(email, 'login');
+    if (!rateLimit.allowed) {
+      setRateLimitError(rateLimit.error);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error: err } = await signIn(email, password);
       if (err) {
-        setError(err.message || 'Une erreur est survenue lors de la connexion.');
+        // Enregistrer la tentative échouée pour le rate limiting
+        await recordFailedAttempt(email, 'login');
+
+        if (err.status === 429 || (err.message && err.message.includes('Too many attempts'))) {
+          setRateLimitError('Trop de tentatives erronées, ressayez dans 5min');
+        } else {
+          setError(err.message || 'Une erreur est survenue lors de la connexion.');
+        }
       }
     } catch (err) {
+      await recordFailedAttempt(email, 'login');
       setError(err.message || 'Une erreur inattendue est survenue.');
     } finally {
       setLoading(false);
@@ -38,7 +58,14 @@ export default function Login() {
           <p className="text-gray-300 mt-2">Connexion à votre espace personnel</p>
         </div>
 
-        {/* Erreur */}
+        {/* Erreur rate limiting */}
+        {rateLimitError && (
+          <div className="mb-6 p-4 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg text-center">
+            {rateLimitError}
+          </div>
+        )}
+
+        {/* Erreur classique */}
         {error && (
           <div className="mb-6 p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
             {error}
@@ -61,21 +88,20 @@ export default function Login() {
 
           <div>
             <label className="label-text">Mot de passe</label>
-            <input
-              type="password"
-              className="input-field input-field-dark"
-              placeholder="••••••••"
+            <PasswordToggle
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={setPassword}
+              placeholder="••••••••"
               autoComplete="current-password"
+              required
+              disabled={loading || !!rateLimitError}
             />
           </div>
 
           <button
             type="submit"
             className="btn-primary w-full"
-            disabled={loading}
+            disabled={loading || !!rateLimitError}
           >
             {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>

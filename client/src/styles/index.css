@@ -225,6 +225,88 @@
 }
 
 /* ============================================================================
+   Responsive Design — JASpay
+   Adaptation mobile, tablette et desktop
+   ============================================================================ */
+
+/* Ajustements pour petits écrans (mobile) */
+@media (max-width: 640px) {
+  .glass-panel {
+    @apply p-6 md:p-8;
+  }
+
+  .input-field,
+  .input-field-dark {
+    @apply px-3 py-2.5;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-success {
+    @apply px-4 py-2.5 text-sm;
+  }
+
+  h1 {
+    @apply text-xl;
+  }
+
+  h2 {
+    @apply text-lg;
+  }
+
+  /* Navbar mobile : liens cachés, boutons réduits */
+  nav .hidden {
+    display: none !important;
+  }
+
+  /* Pages de connexion/inscription : padding réduit */
+  .min-h-screen.px-4 {
+    @apply px-3;
+  }
+
+  .max-w-md {
+    @apply max-w-xs;
+  }
+}
+
+/* Ajustements pour tablette */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .glass-panel {
+    @apply p-10;
+  }
+
+  .max-w-md {
+    @apply max-w-lg;
+  }
+}
+
+/* Ajustements pour desktop */
+@media (min-width: 1025px) {
+  .glass-panel {
+    @apply p-8 md:p-12;
+  }
+}
+
+/* Focus visible pour l'accessibilité clavier */
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  @apply outline-none ring-2 ring-electric-500 ring-offset-2 ring-offset-space-900;
+}
+
+/* Réduction des mouvements pour l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
    Utilitaires
    ============================================================================ */
 

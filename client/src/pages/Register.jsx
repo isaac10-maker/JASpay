@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import PasswordToggle from '../components/PasswordToggle';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const { signUp } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -15,6 +17,12 @@ export default function Register() {
     setError('');
     setSuccess(false);
     setLoading(true);
+
+    if (!termsAccepted) {
+      setError('Vous devez accepter les conditions d\'utilisation et la politique de confidentialité.');
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas.');
@@ -104,36 +112,48 @@ export default function Register() {
 
           <div>
             <label className="label-text">Mot de passe</label>
-            <input
-              type="password"
-              className="input-field input-field-dark"
-              placeholder="••••••••"
+            <PasswordToggle
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={setPassword}
+              placeholder="••••••••"
+              autoComplete="new-password"
               required
               minLength={8}
-              autoComplete="new-password"
+              disabled={loading}
             />
           </div>
 
           <div>
             <label className="label-text">Confirmer le mot de passe</label>
-            <input
-              type="password"
-              className="input-field input-field-dark"
-              placeholder="••••••••"
+            <PasswordToggle
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={setConfirmPassword}
+              placeholder="••••••••"
+              autoComplete="new-password"
               required
               minLength={8}
-              autoComplete="new-password"
+              disabled={loading}
             />
+          </div>
+
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              required
+              className="w-4 h-4 text-electric-500 bg-white/10 border-white/20 rounded focus:ring-electric-500"
+            />
+            <label htmlFor="terms" className="text-sm text-gray-300 leading-relaxed">
+              J'accepte les <a href="/cgu" className="text-electric-400 hover:underline">Conditions Générales d'Utilisation</a> et la <a href="/confidentialite" className="text-electric-400 hover:underline">Politique de Confidentialité</a>.
+            </label>
           </div>
 
           <button
             type="submit"
             className="btn-primary w-full"
-            disabled={loading}
+            disabled={loading || !termsAccepted}
           >
             {loading ? 'Création en cours...' : 'Créer mon compte'}
           </button>
