@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import FloatingElements from '../components/FloatingElements';
 
 export default function Dashboard() {
   const { user, profile, signOut, isAdmin, isSuperAdmin, isAgent, isModerator } = useAuth();
@@ -90,9 +89,6 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Éléments flottants décoratifs */}
-      <FloatingElements />
-
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
@@ -166,7 +162,7 @@ export default function Dashboard() {
 
       {/* Hero Section */}
       <header className="relative z-10 pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center section-fade" style={{ animationDelay: '100ms' }}>
+        <div className="text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-marine-900 rounded-2xl mb-6 border border-white/20 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
             <span className="text-white font-bold text-2xl">J</span>
           </div>
@@ -180,7 +176,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => (window.location.href = '/depot')}
-              className="btn-primary btn-heartbeat btn-scan px-8 py-4 text-lg"
+              className="btn-primary px-8 py-4 text-lg"
             >
               Effectuer un dépôt
             </button>
@@ -197,7 +193,7 @@ export default function Dashboard() {
       {/* Statistiques */}
       {!loading && (
         <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 section-fade" style={{ animationDelay: '200ms' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="glass-panel p-6">
               <p className="text-sm text-gray-400 uppercase tracking-wider font-semibold mb-2">Total opérations</p>
               <p className="text-3xl font-bold text-white">{stats.totalTransactions}</p>
@@ -220,7 +216,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-8 section-fade" style={{ animationDelay: '300ms' }}>
+        <div className="flex flex-col md:flex-row justify-between items-end mb-8">
           <div>
             <h2 className="text-2xl font-bold text-white mb-2">Actions rapides</h2>
             <p className="text-gray-400">Choisissez votre opération suivante</p>
@@ -254,7 +250,7 @@ export default function Dashboard() {
             <p className="text-gray-400 mb-6">
               Déposez sur 1xBet, MelBet, 1Win ou Wallisbet via Mobile Money.
             </p>
-            <button className="btn-primary w-full btn-scan">
+            <button className="btn-primary w-full">
               Déposer maintenant
             </button>
           </div>
@@ -277,7 +273,7 @@ export default function Dashboard() {
             <p className="text-gray-400 mb-6">
               Retirez vers votre numéro Mobile Money enregistré et vérifié.
             </p>
-            <button className="btn-primary w-full btn-scan">
+            <button className="btn-primary w-full">
               Retirer maintenant
             </button>
           </div>
@@ -300,7 +296,7 @@ export default function Dashboard() {
             <p className="text-gray-400 mb-6">
               Suivez l'état de vos dépôts et retraits en temps réel.
             </p>
-            <button className="btn-primary w-full btn-scan">
+            <button className="btn-primary w-full">
               Voir l'historique
             </button>
           </div>
@@ -309,7 +305,7 @@ export default function Dashboard() {
 
       {/* Comment fonctionne JASpay */}
       <section className="z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
-        <div className="glass-panel p-8 md:p-12 rounded-2xl section-fade" style={{ animationDelay: '400ms' }}>
+        <div className="glass-panel p-8 md:p-12 rounded-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">Comment fonctionne JASpay ?</h2>
