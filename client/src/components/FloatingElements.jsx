@@ -9,11 +9,15 @@
  * si l'utilisateur a demandé la réduction des mouvements.
  */
 import { useEffect, useState } from 'react';
+import ballFootball from '../assets/images/objects/ball-football/ball-football.png';
+import ballBasketball from '../assets/images/objects/ball-basketball/ball-basketball.png';
+import ballTennis from '../assets/images/objects/ball-tennis/ball-tennis.png';
+import ballGolf from '../assets/images/objects/ball-golf/ball-golf.png';
 
 const ELEMENTS = [
   {
     id: 'ball-football',
-    src: '/assets/images/objects/ball-football/ball-football.png',
+    src: ballFootball,
     alt: 'Ballon de football décoratif',
     width: 120,
     height: 66,
@@ -24,7 +28,7 @@ const ELEMENTS = [
   },
   {
     id: 'ball-basketball',
-    src: '/assets/images/objects/ball-basketball/ball-basketball.png',
+    src: ballBasketball,
     alt: 'Ballon de basketball décoratif',
     width: 100,
     height: 55,
@@ -35,7 +39,7 @@ const ELEMENTS = [
   },
   {
     id: 'ball-tennis',
-    src: '/assets/images/objects/ball-tennis/ball-tennis.png',
+    src: ballTennis,
     alt: 'Balle de tennis décorative',
     width: 60,
     height: 33,
@@ -46,7 +50,7 @@ const ELEMENTS = [
   },
   {
     id: 'ball-golf',
-    src: '/assets/images/objects/ball-golf/ball-golf.png',
+    src: ballGolf,
     alt: 'Balle de golf décorative',
     width: 45,
     height: 25,
@@ -54,28 +58,6 @@ const ELEMENTS = [
     left: '90%',
     animation: 'float-slow-delayed',
     delay: '6s',
-  },
-  {
-    id: 'trophy-gold',
-    src: '/assets/images/objects/trophy-gold/trophy-gold.png',
-    alt: 'Trophée or décoratif',
-    width: 150,
-    height: 150,
-    top: '15%',
-    left: '50%',
-    animation: 'rotate-gentle',
-    delay: '1s',
-  },
-  {
-    id: 'chip-gold',
-    src: '/assets/images/objects/chip-gold/chip-gold.png',
-    alt: 'Jeton or décoratif',
-    width: 80,
-    height: 80,
-    top: '70%',
-    left: '10%',
-    animation: 'float-slow',
-    delay: '3s',
   },
 ];
 
