@@ -32,10 +32,8 @@ import Starfield from './components/Starfield';
 function ProtectedRoute({ children, requiredRole }) {
   const { user, loading, isAdmin, isSuperAdmin, isAgent, isModerator, hasRole } = useAuth();
 
-  if (loading) {
-    return null;
-  }
-
+  // Pendant le chargement initial de l'auth, on rend quand même les enfants :
+  // ils gèrent leur propre état de chargement. On ne bloque pas le rendu.
   if (!user) {
     return <Navigate to="/login" replace />;
   }

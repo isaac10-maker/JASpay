@@ -15,12 +15,32 @@ export function useAuth() {
   const [profile, setProfile] = useState(null);
   const [userRoles, setUserRoles] = useState([]);
 
+  // Initialisation immédiate depuis la session existante pour éviter
+  // que ProtectedRoute ne bloque le rendu indéfiniment sur loading=true
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!error && data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+          await fetchProfile(data.session.user.id);
+          await fetchUserRoles(data.session.user.id);
+        }
+      } catch (err) {
+        console.error('[useAuth] Erreur initialisation session :', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, []);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
 
         if (session?.user) {
           await fetchProfile(session.user.id);
@@ -29,6 +49,8 @@ export function useAuth() {
           setProfile(null);
           setUserRoles([]);
         }
+
+        setLoading(false);
       }
     );
 
