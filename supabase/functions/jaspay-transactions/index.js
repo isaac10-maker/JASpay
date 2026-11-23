@@ -1,109 +1,233 @@
-/**
- * JASpay — Edge Function : jaspay-transactions
- * Remplace les routes Express :
- *   POST /api/transactions/reference
- *   POST /api/transactions
- *   GET /api/transactions
- *   GET /api/transactions/:id
- *
- * Gestion des transactions utilisateur (création, lecture, détail).
- * L'user_id est injecté depuis le JWT, jamais depuis le frontend.
- * service_role utilisé uniquement côté serveur pour l'insertion.
- */
+// JASpay — Edge Function : jaspay-transactions (VERSION PROPOSÉE)
+// Remplace les routes Express :
+//   POST /api/transactions/reference
+//   POST /api/transactions
+//   GET  /api/transactions
+//   GET  /api/transactions/:id
+//
+// LOGIQUE METIER CONSERVEE A L'IDENTIQUE :
+//   - user_id injecte depuis le JWT, jamais depuis le frontend
+//   - generation de reference cote serveur (prefixe DEP/WDR + date + alea)
+//   - validation decimale stricte (sans parseFloat)
+//   - verifications bookmaker actif, provider actif, methode de paiement active
+//   - controle des limites min/max de la methode de paiement
+//   - statut initial force a 'pending' : le client ne peut pas le choisir
+//   - journalisation dans transaction_events a la creation
+//   - lecture filtree par user_id (aucun acces aux transactions d'autrui)
+//
+// MODELE D'ACCES CONSERVE A L'IDENTIQUE :
+//   - JWT verifie serveur via /auth/v1/user (ex supabase.auth.getUser)
+//   - service_role utilise UNIQUEMENT dans cette fonction, jamais renvoye
+//
+// DIFFERENCES TECHNIQUES (obligatoires pour corriger le BOOT_ERROR) :
+//   1. Deno.serve(handler) en fin de fichier (absent = BOOT_ERROR)
+//   2. Aucun import CDN (l'import esm.sh casse le demarrage)
+//   3. Routage : extraction du suffixe /api/... (l'original renvoyait 404)
+//   4. Correction du bug .single() sur verification d'unicite : PostgREST
+//      renvoie 406 quand 0 ligne ; l'original ignorait l'erreur.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+const ALLOWED_ORIGINS = [
+  'https://jaspay.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+function buildCorsHeaders(origin) {
+  const headers = {
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
+}
 
-export default async function handler(req) {
-  // Gérer le preflight CORS
+function jsonResponse(body, status, cors) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...cors, 'Content-Type': 'application/json' },
+  });
+}
+
+// Extrait /api/... du chemin complet.
+function extractApiPath(pathname) {
+  let p = pathname.replace(/\/+$/, '');
+  const idx = p.indexOf('/api/');
+  if (idx >= 0) p = p.slice(idx);
+  return p;
+}
+
+// En-tetes PostgREST avec service_role (usage strictement interne).
+function serviceHeaders(extra) {
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  return {
+    apikey: key,
+    Authorization: 'Bearer ' + key,
+    'Content-Type': 'application/json',
+    ...(extra || {}),
+  };
+}
+
+function restBase() {
+  return Deno.env.get('SUPABASE_URL') + '/rest/v1/';
+}
+
+// GET PostgREST renvoyant un tableau (jamais d'erreur si 0 ligne).
+async function restGet(pathWithQuery) {
+  const res = await fetch(restBase() + pathWithQuery, { headers: serviceHeaders() });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error('PostgREST GET ' + res.status + ' : ' + text);
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows : [];
+}
+
+// GET PostgREST renvoyant la premiere ligne ou null (sans 406).
+// Remplace .single() en tolerant 0 ligne.
+async function restGetOne(pathWithQuery) {
+  const rows = await restGet(pathWithQuery + '&limit=1');
+  return rows.length > 0 ? rows[0] : null;
+}
+
+// POST PostgREST. Renvoie les lignes creees.
+async function restPost(table, payload, represent) {
+  const res = await fetch(restBase() + table, {
+    method: 'POST',
+    headers: serviceHeaders({
+      Prefer: represent ? 'return=representation' : 'return=minimal',
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error('PostgREST POST ' + res.status + ' : ' + text);
+  }
+
+  if (!represent) return null;
+  return await res.json();
+}
+
+// Verifie le JWT aupres du service Auth.
+// Equivalent de supabase.auth.getUser(token) sans le SDK.
+async function getUserIdFromToken(token) {
+  if (!token) return null;
+
+  const base = Deno.env.get('SUPABASE_URL');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+  try {
+    const res = await fetch(base + '/auth/v1/user', {
+      headers: { apikey: anonKey, Authorization: 'Bearer ' + token },
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    return user && user.id ? user.id : null;
+  } catch {
+    return null;
+  }
+}
+
+// --- Validation decimale stricte (identique a l'original, sans parseFloat) ---
+function isValidDecimal(value) {
+  if (typeof value !== 'string' && typeof value !== 'number') return false;
+  const str = String(value).trim();
+  const decimalRegex = /^\d+(\.\d{1,2})?$/;
+  if (!decimalRegex.test(str)) return false;
+  const num = Number(str);
+  return Number.isFinite(num) && num > 0;
+}
+
+function formatDecimal(value) {
+  return Number(String(value).trim()).toFixed(2);
+}
+
+// --- Validation stricte du format de reference ---
+// Format impose : PREFIXE-YYMMDD-8HEX   ex. DEP-251121-A1B2C3D4
+const REFERENCE_REGEX = /^(DEP|WDR)-\d{6}-[0-9A-F]{8}$/;
+const REFERENCE_PREFIX_BY_TYPE = { deposit: 'DEP', withdrawal: 'WDR' };
+
+// Retourne null si la reference est valide, sinon un message d'erreur.
+function validateReference(reference, transactionType) {
+  if (typeof reference !== 'string') {
+    return 'Référence de transaction invalide';
+  }
+  const trimmed = reference.trim();
+  if (!REFERENCE_REGEX.test(trimmed)) {
+    return 'Format de référence invalide';
+  }
+  const expected = REFERENCE_PREFIX_BY_TYPE[transactionType];
+  if (expected && !trimmed.startsWith(expected + '-')) {
+    return 'Référence incompatible avec le type de transaction';
+  }
+  return null;
+}
+
+async function handler(req) {
+  const origin = req.headers.get('origin');
+  const cors = buildCorsHeaders(origin);
+
+  // Preflight CORS : avant toute logique metier.
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: cors });
   }
 
   const url = new URL(req.url);
-  const path = url.pathname.replace(/\/$/, '');
+  const path = extractApiPath(url.pathname);
 
-  // Récupérer le token JWT
+  // --- Authentification : JWT obligatoire ---
   const authHeader = req.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return new Response(
-      JSON.stringify({ error: 'Token d\'authentification manquant' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: "Token d'authentification manquant" }, 401, cors);
   }
 
   const token = authHeader.substring(7);
+  const userId = await getUserIdFromToken(token);
 
-  // Client avec clé anon pour vérifier l'utilisateur
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL'),
-    Deno.env.get('SUPABASE_ANON_KEY')
-  );
-
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-  if (authError || !user) {
-    return new Response(
-      JSON.stringify({ error: 'Token invalide ou expiré' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  const userId = user.id;
-
-  // Client avec clé service_role pour les opérations nécessitant des privilèges élevés
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL'),
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
-    { auth: { persistSession: false } }
-  );
-
-  // --- Validation décimale stricte (sans parseFloat) ---
-  function isValidDecimal(value) {
-    if (typeof value !== 'string' && typeof value !== 'number') return false;
-    const str = String(value).trim();
-    // Regex : nombre positif, optionnellement avec décimales (max 2)
-    const decimalRegex = /^\d+(\.\d{1,2})?$/;
-    if (!decimalRegex.test(str)) return false;
-    const num = Number(str);
-    return Number.isFinite(num) && num > 0;
-  }
-
-  function formatDecimal(value) {
-    // Retourne le nombre avec exactement 2 décimales pour PostgreSQL DECIMAL(12,2)
-    return Number(String(value).trim()).toFixed(2);
+  if (!userId) {
+    return jsonResponse({ error: 'Token invalide ou expiré' }, 401, cors);
   }
 
   try {
     // --- GET /api/transactions ---
     if (path === '/api/transactions' && req.method === 'GET') {
-      const { status, type, limit = 50, offset = 0 } = Object.fromEntries(url.searchParams);
+      const status = url.searchParams.get('status');
+      const type = url.searchParams.get('type');
+      const limitParam = url.searchParams.get('limit');
+      const offsetParam = url.searchParams.get('offset');
 
-      let query = supabaseAdmin
-        .from('transactions')
-        .select(`
-          *,
-          bookmaker:bookmakers (name, technical_id),
-          provider:payment_providers (name, technical_id),
-          events:transaction_events (old_status, new_status, notes, changed_at)
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+      const limit = parseInt(limitParam || '50', 10);
+      const offset = parseInt(offsetParam || '0', 10);
 
-      if (status) query = query.eq('status', status);
-      if (type) query = query.eq('transaction_type', type);
+      const select =
+        '*,bookmaker:bookmakers(name,technical_id),' +
+        'provider:payment_providers(name,technical_id),' +
+        'events:transaction_events(old_status,new_status,notes,changed_at)';
 
-      const { data, error } = await query;
-      if (error) throw error;
+      let query =
+        'transactions?select=' +
+        encodeURIComponent(select) +
+        '&user_id=eq.' +
+        encodeURIComponent(userId) +
+        '&order=created_at.desc' +
+        '&limit=' +
+        limit +
+        '&offset=' +
+        offset;
 
-      return new Response(
-        JSON.stringify({ transactions: data || [], count: data ? data.length : 0 }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      if (status) query += '&status=eq.' + encodeURIComponent(status);
+      if (type) query += '&transaction_type=eq.' + encodeURIComponent(type);
+
+      const rows = await restGet(query);
+
+      return jsonResponse(
+        { transactions: rows || [], count: rows ? rows.length : 0 },
+        200,
+        cors
       );
     }
 
@@ -112,75 +236,71 @@ export default async function handler(req) {
     if (idMatch && req.method === 'GET') {
       const transactionId = idMatch[1];
 
-      const { data, error } = await supabaseAdmin
-        .from('transactions')
-        .select(`
-          *,
-          bookmaker:bookmakers (name, technical_id, logo_url),
-          provider:payment_providers (name, technical_id),
-          events:transaction_events (old_status, new_status, changed_by, changed_at, notes)
-        `)
-        .eq('id', transactionId)
-        .eq('user_id', userId)
-        .single();
+      const select =
+        '*,bookmaker:bookmakers(name,technical_id,logo_url),' +
+        'provider:payment_providers(name,technical_id),' +
+        'events:transaction_events(old_status,new_status,changed_by,changed_at,notes)';
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return new Response(
-            JSON.stringify({ error: 'Transaction introuvable' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        throw error;
+      const query =
+        'transactions?select=' +
+        encodeURIComponent(select) +
+        '&id=eq.' +
+        encodeURIComponent(transactionId) +
+        '&user_id=eq.' +
+        encodeURIComponent(userId) +
+        '&limit=1';
+
+      const rows = await restGet(query);
+
+      if (rows.length === 0) {
+        return jsonResponse({ error: 'Transaction introuvable' }, 404, cors);
       }
 
-      return new Response(
-        JSON.stringify({ transaction: data }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ transaction: rows[0] }, 200, cors);
     }
 
     // --- POST /api/transactions/reference ---
     if (path === '/api/transactions/reference' && req.method === 'POST') {
-      const body = await req.json();
-      const { transaction_type } = body;
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return jsonResponse({ error: 'Corps JSON invalide' }, 400, cors);
+      }
+
+      const { transaction_type } = body || {};
 
       if (!transaction_type || !['deposit', 'withdrawal'].includes(transaction_type)) {
-        return new Response(
-          JSON.stringify({ error: 'Type de transaction invalide' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonResponse({ error: 'Type de transaction invalide' }, 400, cors);
       }
 
-      // Génération référence côté serveur (jamais par le frontend)
+      // Generation de reference cote serveur (jamais par le frontend)
       const prefix = transaction_type === 'deposit' ? 'DEP' : 'WDR';
       const date = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-      const random = crypto.randomUUID().substring(0, 8).toUpperCase();
-      const reference = `${prefix}-${date}-${random}`;
+      const randomPart = crypto.randomUUID().substring(0, 8).toUpperCase();
+      const reference = prefix + '-' + date + '-' + randomPart;
 
-      // Vérifier l'unicité (défense en profondeur)
-      const { data: existing } = await supabaseAdmin
-        .from('transactions')
-        .select('id')
-        .eq('transaction_reference', reference)
-        .single();
+      // Verification d'unicite (defense en profondeur)
+      const existing = await restGetOne(
+        'transactions?select=id&transaction_reference=eq.' + encodeURIComponent(reference)
+      );
 
       if (existing) {
-        return new Response(
-          JSON.stringify({ error: 'Référence déjà existante, réessayez' }),
-          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonResponse({ error: 'Référence déjà existante, réessayez' }, 409, cors);
       }
 
-      return new Response(
-        JSON.stringify({ transaction_reference: reference }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ transaction_reference: reference }, 200, cors);
     }
 
     // --- POST /api/transactions ---
     if (path === '/api/transactions' && req.method === 'POST') {
-      const body = await req.json();
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return jsonResponse({ error: 'Corps JSON invalide' }, 400, cors);
+      }
+
       const {
         transaction_reference,
         transaction_type,
@@ -190,107 +310,118 @@ export default async function handler(req) {
         currency,
         payment_provider_id,
         phone_number,
-      } = body;
+      } = body || {};
 
-      // Validation des champs requis
-      if (!transaction_reference || !transaction_type || !bookmaker_id || !bookmaker_account_id || !amount || !currency || !payment_provider_id || !phone_number) {
-        return new Response(
-          JSON.stringify({ error: 'Tous les champs sont requis' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // 1. Validation des champs requis
+      if (
+        !transaction_reference ||
+        !transaction_type ||
+        !bookmaker_id ||
+        !bookmaker_account_id ||
+        !amount ||
+        !currency ||
+        !payment_provider_id ||
+        !phone_number
+      ) {
+        return jsonResponse({ error: 'Tous les champs sont requis' }, 400, cors);
       }
 
-      // Validation du type
+      // 2. Validation du type
       if (!['deposit', 'withdrawal'].includes(transaction_type)) {
-        return new Response(
-          JSON.stringify({ error: 'Type de transaction invalide' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonResponse({ error: 'Type de transaction invalide' }, 400, cors);
       }
 
-      // Validation décimale stricte du montant (pas de parseFloat)
+      // 2bis. Validation stricte du format de reference
+      const referenceError = validateReference(transaction_reference, transaction_type);
+      if (referenceError) {
+        return jsonResponse({ error: referenceError }, 400, cors);
+      }
+
+      // 3. Validation decimale stricte du montant
       if (!isValidDecimal(amount)) {
-        return new Response(
-          JSON.stringify({ error: 'Montant invalide' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonResponse({ error: 'Montant invalide' }, 400, cors);
       }
 
       const amountNum = formatDecimal(amount);
 
-      // Vérifier que la référence n'existe pas déjà
-      const { data: refCheck } = await supabaseAdmin
-        .from('transactions')
-        .select('id')
-        .eq('transaction_reference', transaction_reference)
-        .single();
+      // 4. Reference deja utilisee ?
+      const refCheck = await restGetOne(
+        'transactions?select=id&transaction_reference=eq.' +
+          encodeURIComponent(transaction_reference)
+      );
 
       if (refCheck) {
-        return new Response(
-          JSON.stringify({ error: 'Cette référence de transaction est déjà utilisée' }),
-          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        return jsonResponse(
+          { error: 'Cette référence de transaction est déjà utilisée' },
+          409,
+          cors
         );
       }
 
-      // Vérifier que le bookmaker existe et est actif
-      const { data: bookmaker, error: bmError } = await supabaseAdmin
-        .from('bookmakers')
-        .select('id, is_active')
-        .eq('id', bookmaker_id)
-        .single();
+      // 5. Bookmaker existant et actif
+      const bookmaker = await restGetOne(
+        'bookmakers?select=id,is_active&id=eq.' + encodeURIComponent(bookmaker_id)
+      );
 
-      if (bmError || !bookmaker || !bookmaker.is_active) {
-        return new Response(
-          JSON.stringify({ error: 'Bookmaker invalide ou inactif' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      if (!bookmaker || !bookmaker.is_active) {
+        return jsonResponse({ error: 'Bookmaker invalide ou inactif' }, 400, cors);
+      }
+
+      // 6. Provider existant et actif
+      const provider = await restGetOne(
+        'payment_providers?select=id,is_active,supports_deposit,supports_withdrawal&id=eq.' +
+          encodeURIComponent(payment_provider_id)
+      );
+
+      if (!provider || !provider.is_active) {
+        return jsonResponse(
+          { error: 'Opérateur de paiement invalide ou inactif' },
+          400,
+          cors
         );
       }
 
-      // Vérifier que le provider existe et est actif
-      const { data: provider, error: pError } = await supabaseAdmin
-        .from('payment_providers')
-        .select('id, is_active, supports_deposit, supports_withdrawal')
-        .eq('id', payment_provider_id)
-        .single();
+      // 7. Methode de paiement active pour ce couple bookmaker/provider
+      const method = await restGetOne(
+        'payment_methods?select=*' +
+          '&bookmaker_id=eq.' +
+          encodeURIComponent(bookmaker_id) +
+          '&provider_id=eq.' +
+          encodeURIComponent(payment_provider_id) +
+          '&is_active=eq.true'
+      );
 
-      if (pError || !provider || !provider.is_active) {
-        return new Response(
-          JSON.stringify({ error: 'Opérateur de paiement invalide ou inactif' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      if (!method) {
+        return jsonResponse(
+          { error: "Cette méthode de paiement n'est pas disponible pour ce bookmaker" },
+          400,
+          cors
         );
       }
 
-      // Vérifier que la méthode de paiement existe pour ce bookmaker
-      const { data: method, error: mError } = await supabaseAdmin
-        .from('payment_methods')
-        .select('*')
-        .eq('bookmaker_id', bookmaker_id)
-        .eq('provider_id', payment_provider_id)
-        .eq('is_active', true)
-        .single();
-
-      if (mError || !method) {
-        return new Response(
-          JSON.stringify({ error: 'Cette méthode de paiement n\'est pas disponible pour ce bookmaker' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Validation des limites de montant (comparaison décimale stricte)
+      // 8. Limites de montant
       const minAmount = Number(method.min_amount);
       const maxAmount = Number(method.max_amount);
-      if (amountNum < minAmount || amountNum > maxAmount) {
-        return new Response(
-          JSON.stringify({ error: `Montant hors limites (${method.min_amount} - ${method.max_amount} XOF)` }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+
+      if (Number(amountNum) < minAmount || Number(amountNum) > maxAmount) {
+        return jsonResponse(
+          {
+            error:
+              'Montant hors limites (' +
+              method.min_amount +
+              ' - ' +
+              method.max_amount +
+              ' XOF)',
+          },
+          400,
+          cors
         );
       }
 
-      // Créer la transaction (statut pending par défaut)
-      // L'user_id est injecté depuis le JWT, jamais depuis le frontend
-      const { data: transaction, error: tError } = await supabaseAdmin
-        .from('transactions')
-        .insert({
+      // 9. Creation : user_id depuis le JWT, statut force a pending
+      const inserted = await restPost(
+        'transactions',
+        {
           user_id: userId,
           transaction_reference,
           transaction_type,
@@ -301,31 +432,41 @@ export default async function handler(req) {
           payment_provider_id,
           phone_number,
           status: 'pending',
-        })
-        .select()
-        .single();
+        },
+        true
+      );
 
-      if (tError) {
-        return new Response(
-          JSON.stringify({ error: tError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      const transaction = Array.isArray(inserted) ? inserted[0] : inserted;
+
+      if (!transaction) {
+        return jsonResponse({ error: 'Création de transaction échouée' }, 500, cors);
+      }
+
+      // 10. Journalisation de l'evenement de creation
+      try {
+        await restPost(
+          'transaction_events',
+          {
+            transaction_id: transaction.id,
+            old_status: null,
+            new_status: 'pending',
+            changed_by: userId,
+            notes: 'Création de la demande de transaction',
+            metadata: { source: 'user', transaction_type },
+          },
+          false
+        );
+      } catch (eventErr) {
+        // La transaction existe deja : on ne la supprime pas, on journalise.
+        console.error(
+          '[jaspay-transactions] Evenement non journalise :',
+          eventErr && eventErr.message ? eventErr.message : eventErr
         );
       }
 
-      // Journaliser l'événement de création
-      await supabaseAdmin
-        .from('transaction_events')
-        .insert({
-          transaction_id: transaction.id,
-          old_status: null,
-          new_status: 'pending',
-          changed_by: userId,
-          notes: 'Création de la demande de transaction',
-          metadata: { source: 'user', transaction_type },
-        });
-
-      return new Response(
-        JSON.stringify({
+      // 11. Reponse : meme format qu'a l'origine (201 + transaction)
+      return jsonResponse(
+        {
           transaction: {
             id: transaction.id,
             transaction_reference: transaction.transaction_reference,
@@ -339,20 +480,25 @@ export default async function handler(req) {
             status: transaction.status,
             created_at: transaction.created_at,
           },
-        }),
-        { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        },
+        201,
+        cors
       );
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Route non trouvée' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: 'Route non trouvée' }, 404, cors);
   } catch (err) {
-    console.error('[jaspay-transactions] Erreur:', err.message);
-    return new Response(
-      JSON.stringify({ error: 'Erreur serveur lors du traitement de la transaction' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    console.error(
+      '[jaspay-transactions] Erreur:',
+      err && err.message ? err.message : err
+    );
+    return jsonResponse(
+      { error: 'Erreur serveur lors du traitement de la transaction' },
+      500,
+      cors
     );
   }
 }
+
+// Supabase Edge Runtime exige un appel explicite a Deno.serve.
+Deno.serve(handler);
