@@ -105,6 +105,10 @@ export default function Deposit() {
     loadPaymentMethods(id);
   };
 
+  // Retourne la reference generee, ou null en cas d'echec.
+  // Le setForm met a jour l'affichage, mais l'appelant doit utiliser la
+  // valeur de retour : setForm est asynchrone et la variable `form`
+  // n'est pas rafraichie dans la fermeture de handleSubmit en cours.
   const generateReference = async (transactionType) => {
     try {
       const { data, error } = await invokeEdge(
@@ -114,9 +118,16 @@ export default function Deposit() {
         { transaction_type: transactionType }
       );
       if (error) throw error;
-      setForm((prev) => ({ ...prev, transaction_reference: data.transaction_reference }));
+      const reference = data && data.transaction_reference;
+      if (!reference) {
+        setError('Référence de transaction indisponible.');
+        return null;
+      }
+      setForm((prev) => ({ ...prev, transaction_reference: reference }));
+      return reference;
     } catch (err) {
       setError(err.message || 'Erreur lors de la génération de la référence.');
+      return null;
     }
   };
 
@@ -148,8 +159,18 @@ export default function Deposit() {
     setLoading(true);
 
     try {
-      if (!form.transaction_reference) {
-        await generateReference('deposit');
+      let reference = form.transaction_reference;
+      if (!reference) {
+        reference = await generateReference('deposit');
+      }
+
+      // Arret sans POST si la reference n'a pas pu etre obtenue.
+      if (!reference) {
+        setError(
+          "Impossible d'obtenir une référence de transaction. Veuillez réessayer."
+        );
+        setLoading(false);
+        return;
       }
 
       const { data: txData, error: txError } = await invokeEdge(
@@ -157,7 +178,7 @@ export default function Deposit() {
         '/api/transactions',
         'POST',
         {
-          transaction_reference: form.transaction_reference,
+          transaction_reference: reference,
           transaction_type: 'deposit',
           bookmaker_id: form.bookmaker_id,
           bookmaker_account_id: form.bookmaker_account_id,

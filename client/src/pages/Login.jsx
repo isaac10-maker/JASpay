@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { checkRateLimit, recordFailedAttempt } from '../lib/rateLimit';
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../lib/rateLimit';
 import PasswordToggle from '../components/PasswordToggle';
 
 export default function Login() {
@@ -18,25 +18,36 @@ export default function Login() {
     setRateLimitError('');
     setLoading(true);
 
-    // 1. Vérifier le rate limiting avant toute tentative Supabase
-    const rateLimit = await checkRateLimit(email, 'login');
-    if (!rateLimit.allowed) {
-      setRateLimitError(rateLimit.error);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { error: err } = await signIn(email, password);
-      if (err) {
-        // Enregistrer la tentative échouée pour le rate limiting
-        await recordFailedAttempt(email, 'login');
+      // 1. Vérifier le rate limiting AVANT toute tentative Supabase
+      const rateLimit = await checkRateLimit(email, 'login');
+      if (!rateLimit.allowed) {
+        setRateLimitError(rateLimit.error);
+        setLoading(false);
+        return;
+      }
 
-        if (err.status === 429 || (err.message && err.message.includes('Too many attempts'))) {
+      // 2. Tentative d'authentification
+      const { error: err } = await signIn(email, password);
+
+      if (err) {
+        // Enregistrer l'échec : incrémente réellement le compteur
+        const rec = await recordFailedAttempt(email, 'login');
+
+        if (rec.blocked) {
+          setRateLimitError(rec.error);
+        } else if (err.status === 429 || (err.message || '').includes('Too many attempts')) {
           setRateLimitError('Trop de tentatives erronées, ressayez dans 5min');
         } else {
-          setError(err.message || 'Une erreur est survenue lors de la connexion.');
+          const suffix =
+            typeof rec.remaining === 'number'
+              ? ` Tentatives restantes : ${rec.remaining}.`
+              : '';
+          setError((err.message || 'Une erreur est survenue lors de la connexion.') + suffix);
         }
+      } else {
+        // Connexion réussie : on remet le compteur à zéro
+        await resetRateLimit(email, 'login');
       }
     } catch (err) {
       await recordFailedAttempt(email, 'login');
