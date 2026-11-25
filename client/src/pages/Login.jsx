@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../lib/rateLimit';
 import { messageErreurAuth } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
+import GoogleButton from '../components/GoogleButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -85,6 +86,14 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <GoogleButton label="Se connecter avec Google" disabled={loading || !!rateLimitError} />
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/20" />
+            <span className="text-xs text-gray-400">ou par e-mail</span>
+            <div className="flex-1 h-px bg-white/20" />
+          </div>
+
           <div>
             <label className="label-text">Adresse e-mail</label>
             <input

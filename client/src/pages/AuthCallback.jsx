@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { messageErreurAuth } from '../utils/authErrors';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -9,19 +10,33 @@ export default function AuthCallback() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // IMPORTANT : `supabase.js` configure `detectSessionInUrl: true`.
+    // Supabase-js echange donc DEJA le code OAuth / de confirmation au chargement
+    // de la page. Appeler exchangeCodeForSession() ici reviendrait a echanger
+    // deux fois le meme code : la seconde tentative echoue ("code already used")
+    // et affiche une erreur alors que le compte a bien ete cree.
+    //
+    // On se contente donc de LIRE la session deja etablie par la librairie.
     const handleAuthCallback = async () => {
       try {
-        const { data, error: err } = await supabase.auth.exchangeCodeForSession(
-          new URL(window.location.href).searchParams.get('code') || ''
-        );
+        const { data, error: err } = await supabase.auth.getSession();
 
         if (err) {
-          setError(err.message || 'Erreur lors de la confirmation du compte.');
+          setError(messageErreurAuth(err, 'connexion'));
           setLoading(false);
           return;
         }
 
-        if (data.user) {
+        // detectSessionInUrl peut avoir besoin d'un court instant pour traiter
+        // l'URL. On retente une fois avant de conclure a l'echec.
+        let session = data?.session;
+        if (!session) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          const retry = await supabase.auth.getSession();
+          session = retry.data?.session;
+        }
+
+        if (session?.user) {
           setMessage(
             'Votre compte a été confirmé avec succès ! Vous pouvez maintenant vous connecter.'
           );
@@ -30,9 +45,14 @@ export default function AuthCallback() {
           setTimeout(() => {
             navigate('/login');
           }, 3000);
+        } else {
+          setError(
+            "Aucune session n'a pu être établie. Le lien a peut-être expiré ou a déjà été utilisé."
+          );
+          setLoading(false);
         }
       } catch (err) {
-        setError(err.message || 'Une erreur inattendue est survenue.');
+        setError(messageErreurAuth(err, 'connexion'));
         setLoading(false);
       }
     };

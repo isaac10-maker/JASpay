@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { messageErreurAuth } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
+import GoogleButton from '../components/GoogleButton';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -106,6 +107,14 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <GoogleButton label="S'inscrire avec Google" disabled={loading} />
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/20" />
+            <span className="text-xs text-gray-400">ou par e-mail</span>
+            <div className="flex-1 h-px bg-white/20" />
+          </div>
+
           <div>
             <label className="label-text">Adresse e-mail</label>
             <input
