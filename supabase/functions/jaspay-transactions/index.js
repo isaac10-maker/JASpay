@@ -136,7 +136,7 @@ async function getUserIdFromToken(token) {
 function isValidDecimal(value) {
   if (typeof value !== 'string' && typeof value !== 'number') return false;
   const str = String(value).trim();
-  const decimalRegex = /^\d+(\.\d{1,2})?$/;
+  const decimalRegex = /^[0-9]+([.][0-9]{1,2})?$/;
   if (!decimalRegex.test(str)) return false;
   const num = Number(str);
   return Number.isFinite(num) && num > 0;
@@ -148,20 +148,22 @@ function formatDecimal(value) {
 
 // --- Validation stricte du format de reference ---
 // Format impose : PREFIXE-YYMMDD-8HEX   ex. DEP-251121-A1B2C3D4
-const REFERENCE_REGEX = /^(DEP|WDR)-\d{6}-[0-9A-F]{8}$/;
+const REFERENCE_REGEX = /^(DEP|WDR)-[0-9]{6}-[0-9A-F]{8}$/;
 const REFERENCE_PREFIX_BY_TYPE = { deposit: 'DEP', withdrawal: 'WDR' };
 
 // Retourne null si la reference est valide, sinon un message d'erreur.
+//
+// La reference est testee BRUTE, sans trim() : une reference entouree
+// d'espaces est refusee. Le format impose ne contient aucun espace.
 function validateReference(reference, transactionType) {
   if (typeof reference !== 'string') {
     return 'Référence de transaction invalide';
   }
-  const trimmed = reference.trim();
-  if (!REFERENCE_REGEX.test(trimmed)) {
+  if (!REFERENCE_REGEX.test(reference)) {
     return 'Format de référence invalide';
   }
   const expected = REFERENCE_PREFIX_BY_TYPE[transactionType];
-  if (expected && !trimmed.startsWith(expected + '-')) {
+  if (expected && !reference.startsWith(expected + '-')) {
     return 'Référence incompatible avec le type de transaction';
   }
   return null;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../lib/rateLimit';
+import { messageErreurAuth } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
 
 export default function Login() {
@@ -43,7 +44,7 @@ export default function Login() {
             typeof rec.remaining === 'number'
               ? ` Tentatives restantes : ${rec.remaining}.`
               : '';
-          setError((err.message || 'Une erreur est survenue lors de la connexion.') + suffix);
+          setError(messageErreurAuth(err, 'connexion') + suffix);
         }
       } else {
         // Connexion réussie : on remet le compteur à zéro
@@ -51,7 +52,7 @@ export default function Login() {
       }
     } catch (err) {
       await recordFailedAttempt(email, 'login');
-      setError(err.message || 'Une erreur inattendue est survenue.');
+      setError(messageErreurAuth(err, 'connexion'));
     } finally {
       setLoading(false);
     }

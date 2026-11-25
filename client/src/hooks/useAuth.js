@@ -59,19 +59,21 @@ export function useAuth() {
 
   const fetchProfile = useCallback(async (userId) => {
     try {
+      // maybeSingle() : 0 ligne renvoie `data = null` sans erreur HTTP 406,
+      // contrairement a single() qui rejette la requete.
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('[useAuth] Erreur récupération profil :', error.message);
       }
 
-      if (data) {
-        setProfile(data);
-      }
+      // `data` vaut null si le profil n'existe pas : on remet l'etat a null
+      // plutot que de conserver un profil appartenant a un autre utilisateur.
+      setProfile(data ?? null);
     } catch (err) {
       console.error('[useAuth] Exception récupération profil :', err.message);
     }

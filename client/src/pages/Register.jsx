@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { messageErreurAuth } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
 
 export default function Register() {
@@ -39,7 +40,7 @@ export default function Register() {
     try {
       const { data, error: err } = await signUp(email, password);
       if (err) {
-        setError(err.message || 'Une erreur est survenue lors de l\'inscription.');
+        setError(messageErreurAuth(err, 'inscription'));
       } else {
         setSuccess(true);
         setEmail('');
@@ -47,7 +48,7 @@ export default function Register() {
         setConfirmPassword('');
       }
     } catch (err) {
-      setError(err.message || 'Une erreur inattendue est survenue.');
+      setError(messageErreurAuth(err, 'inscription'));
     } finally {
       setLoading(false);
     }
