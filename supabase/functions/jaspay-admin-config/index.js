@@ -1,23 +1,24 @@
-/**
- * JASpay — Edge Function : jaspay-admin-config
- * Remplace les routes Express :
- *   GET /api/admin/bookmakers
- *   POST /api/admin/bookmakers
- *   GET /api/admin/payment-providers
- *   POST /api/admin/payment-providers
- *   GET /api/admin/settings
- *   POST /api/admin/settings
- *   GET /api/admin/announcements
- *   POST /api/admin/announcements
- *   PUT /api/admin/announcements/:id
- *   DELETE /api/admin/announcements/:id
- *
- * Configuration plateforme.
- * Vérifie : JWT, rôle (super_admin/admin/moderator selon route),
- * compte actif, session admin (revoked_at, expires_at).
- */
+//
+// JASpay — Edge Function : jaspay-admin-config
+// Remplace les routes Express :
+// GET /api/admin/bookmakers
+// POST /api/admin/bookmakers
+// GET /api/admin/payment-providers
+// POST /api/admin/payment-providers
+// GET /api/admin/settings
+// POST /api/admin/settings
+// GET /api/admin/announcements
+// POST /api/admin/announcements
+// PUT /api/admin/announcements/:id
+// DELETE /api/admin/announcements/:id
+//
+// Configuration plateforme.
+// Vérifie : JWT, rôle (super_admin/admin/moderator selon route),
+// compte actif, session admin (revoked_at, expires_at).
+//
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,14 +26,22 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 };
 
-export default async function handler(req) {
+// Extrait /api/... du chemin complet.
+function extractApiPath(pathname) {
+  let p = pathname.replace(/\/+$/, '');
+  const idx = p.indexOf('/api/');
+  if (idx >= 0) p = p.slice(idx);
+  return p;
+}
+
+async function handler(req) {
   // Gérer le preflight CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   const url = new URL(req.url);
-  const path = url.pathname.replace(/\/$/, '');
+  const path = extractApiPath(url.pathname);
 
   // Récupérer le token JWT
   const authHeader = req.headers.get('Authorization');
@@ -516,3 +525,6 @@ export default async function handler(req) {
     );
   }
 }
+
+// Supabase Edge Runtime exige un appel explicite a Deno.serve.
+Deno.serve(handler);

@@ -1,0 +1,139 @@
+-- =============================================================================
+-- JASpay — MIGRATION CORRECTIVE PROPOSÉE
+-- ⚠️  NE PAS EXÉCUTER — EN ATTENTE D'AUTORISATION EXPLICITE
+-- =============================================================================
+--
+-- FAILLE VISÉE :
+--   La politique RLS "Utilisateur crée ses propres transactions"
+--   (003_transactions.sql, ligne 288) n'a AUCUNE contrainte sur
+--   status, amount, currency, bookmaker_id, payment_provider_id.
+--
+--   Le rôle `authenticated` dispose de GRANT INSERT sur la table.
+--
+--   CONSÉQUENCE : un utilisateur connecté peut insérer DIRECTEMENT via PostgREST
+--   avec status = 'completed', sans passer par l'Edge Function, sans vérification
+--   de montant, sans vérification de bookmaker actif, sans vérification de
+--   payment_method, et sans journalisation dans transaction_events.
+--
+--   Contournement total des 21 règles métier de jaspay-transactions.
+--
+-- JUSTIFICATION DU RETRAIT :
+--   `jaspay-transactions` utilise SUPABASE_SERVICE_ROLE_KEY pour l'insertion.
+--   service_role IGNORE complètement RLS : la policy INSERT cliente est donc
+--   INUTILE au fonctionnement de l'Edge Function.
+--
+--   Elle ne sert qu'au frontend, et le frontend n'insère jamais de transaction
+--   directement (vérifié : aucun appel supabase.from('transactions').insert()
+--   dans client/src/).
+--
+-- CE QUE CETTE MIGRATION NE TOUCHE PAS :
+--   - la policy SELECT  (lecture de ses propres transactions)      → CONSERVÉE
+--   - la policy UPDATE  (expirée/sans effet, voir §4)              → CONSERVÉE
+--   - la policy DELETE  (déjà USING false)                         → CONSERVÉE
+--   - les GRANT (non modifiés — RLS suffit)                        → CONSERVÉS
+--   - transaction_events                                           → NON TOUCHÉ
+--   - process_transaction_atomic                                   → NON TOUCHÉ
+--   - toute autre table                                            → NON TOUCHÉE
+-- =============================================================================
+
+
+-- -----------------------------------------------------------------------------
+-- PARTIE 1 — SUPPRESSION DE LA POLICY INSERT CLIENTE
+-- -----------------------------------------------------------------------------
+
+DROP POLICY IF EXISTS "Utilisateur crée ses propres transactions" ON public.transactions;
+
+
+-- -----------------------------------------------------------------------------
+-- PARTIE 2 — SUPPRESSION DE LA POLICY UPDATE EXPIRÉE
+--
+-- La policy "Utilisateur met à jour ses propres transactions (champs limités)"
+-- (003_transactions.sql, ligne 296) est INVALIDE et sans effet :
+--   - Elle utilise NEW.id dans un WITH CHECK, ce qui provoque une erreur
+--     "missing FROM-clause entry for table new" à l'évaluation.
+--   - Elle a été remplacée en production par "Aucune mise à jour directe de
+--     transactions depuis le client" (UPDATE USING false).
+--   - L'invalide n'apparaît PAS dans pg_policies (confirmé).
+--   - PostgreSQL l'ignore de toute façon : une policy USING(false) restrictive
+--     bloque toute mise à jour cliente.
+--
+-- On la supprime pour rendre le schéma du dépôt cohérent avec la production.
+-- EFFET FONCTIONNEL : AUCUN (elle est déjà sans effet).
+--
+-- ⚠️ Peut échouer avec "policy does not exist" : c'est SANS GRAVITÉ.
+-- -----------------------------------------------------------------------------
+
+DROP POLICY IF EXISTS "Utilisateur met à jour ses propres transactions (champs limités)" ON public.transactions;
+
+
+-- =============================================================================
+-- RETOUR ARRIÈRE (ROLLBACK) — À EXÉCUTER EN CAS DE PROBLÈME
+-- =============================================================================
+--
+-- Restaure la policy INSERT telle qu'elle existait avant la migration.
+-- La policy UPDATE expirée n'est PAS restaurée : elle est invalide et sans effet.
+--
+-- BEGIN;
+--
+--   CREATE POLICY "Utilisateur crée ses propres transactions"
+--   ON public.transactions
+--   FOR INSERT
+--   TO authenticated
+--   WITH CHECK (auth.uid() = user_id);
+--
+-- COMMIT;
+--
+-- Vérification du retour arrière :
+--   SELECT policyname, cmd FROM pg_policies
+--   WHERE schemaname='public' AND tablename='transactions' AND cmd='INSERT';
+--   -- Attendu : 1 ligne "Utilisateur crée ses propres transactions"
+-- =============================================================================
+
+
+-- =============================================================================
+-- VÉRIFICATION POST-MIGRATION (lecture seule, à exécuter après)
+-- =============================================================================
+--
+-- 1) Les policies restantes sur transactions :
+--    SELECT policyname, cmd, qual, with_check FROM pg_policies
+--    WHERE schemaname='public' AND tablename='transactions' ORDER BY cmd;
+--    Attendu : 3 policies — SELECT, UPDATE (false), DELETE (false)
+--              PLUS AUCUNE policy INSERT
+--
+-- 2) Aucun impact sur service_role : il ignore RLS, l'Edge Function continue
+--    de fonctionner à l'identique.
+--
+-- 3) Aucun impact sur la lecture : la policy SELECT est intacte.
+-- =============================================================================
+
+
+-- =============================================================================
+-- MIGRATION COMPLÉMENTAIRE PROPOSÉE — SÉPARÉE, À DÉCIDER SÉPARÉMENT
+-- ⚠️ NON INCLUSE DANS LA MIGRATION CI-DESSUS (périmètre plus large)
+-- =============================================================================
+--
+-- CONSTAT : les 9 tables auditées accordent à `anon` (NON AUTHENTIFIÉ) les
+-- privilèges DELETE, INSERT, UPDATE, TRUNCATE, TRIGGER, REFERENCES.
+-- C'est le comportement par défaut de Supabase (GRANT ALL TO anon, authenticated).
+--
+-- Ces GRANT sont neutralisés par RLS quand une policy existe. MAIS :
+--   - sur `rate_limit_attempts` : RLS activé avec 0 policy → protégé ✅
+--   - ailleurs, chaque table dépend entièrement de ses policies.
+--
+-- RECOMMANDATION (défense en profondeur) : révoquer les privilèges inutiles
+-- pour `anon` sur les tables de données métier. `anon` n'a besoin d'AUCUN accès
+-- direct à ces tables.
+--
+-- BEGIN;
+--   REVOKE INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER, REFERENCES
+--     ON public.transactions FROM anon;
+--   REVOKE INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER, REFERENCES
+--     ON public.transaction_events FROM anon;
+--   REVOKE INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER, REFERENCES
+--     ON public.rate_limit_attempts FROM anon, authenticated;
+-- COMMIT;
+--
+-- ⚠️ À VALIDER SÉPARÉMENT : ceci touche plus de surface que le correctif
+--    principal. Le retrait de la policy INSERT suffit à colmater la faille
+--    identifiée. Ce complément est une amélioration, pas une nécessité.
+-- =============================================================================

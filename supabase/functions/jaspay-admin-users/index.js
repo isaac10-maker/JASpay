@@ -1,22 +1,23 @@
-/**
- * JASpay — Edge Function : jaspay-admin-users
- * Remplace les routes Express :
- *   GET /api/admin/stats
- *   GET /api/admin/users
- *   GET /api/admin/users/:id
- *   POST /api/admin/users/:id/suspend
- *   POST /api/admin/users/:id/reactivate
- *   DELETE /api/admin/users/:id
- *   POST /api/admin/users/:id/roles
- *   DELETE /api/admin/users/:id/roles/:role
- *   POST /api/admin/transactions/:id/assign
- *
- * Gestion utilisateurs et rôles.
- * Vérifie : JWT, rôle (super_admin/admin), compte actif,
- * session admin (revoked_at, expires_at), protections super_admin.
- */
+//
+// JASpay — Edge Function : jaspay-admin-users
+// Remplace les routes Express :
+// GET /api/admin/stats
+// GET /api/admin/users
+// GET /api/admin/users/:id
+// POST /api/admin/users/:id/suspend
+// POST /api/admin/users/:id/reactivate
+// DELETE /api/admin/users/:id
+// POST /api/admin/users/:id/roles
+// DELETE /api/admin/users/:id/roles/:role
+// POST /api/admin/transactions/:id/assign
+//
+// Gestion utilisateurs et rôles.
+// Vérifie : JWT, rôle (super_admin/admin), compte actif,
+// session admin (revoked_at, expires_at), protections super_admin.
+//
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,14 +25,22 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
 };
 
-export default async function handler(req) {
+// Extrait /api/... du chemin complet.
+function extractApiPath(pathname) {
+  let p = pathname.replace(/\/+$/, '');
+  const idx = p.indexOf('/api/');
+  if (idx >= 0) p = p.slice(idx);
+  return p;
+}
+
+async function handler(req) {
   // Gérer le preflight CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   const url = new URL(req.url);
-  const path = url.pathname.replace(/\/$/, '');
+  const path = extractApiPath(url.pathname);
 
   // Récupérer le token JWT
   const authHeader = req.headers.get('Authorization');
@@ -89,7 +98,7 @@ export default async function handler(req) {
     .from('profiles')
     .select('is_active')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (!profile || !profile.is_active) {
     return new Response(
@@ -285,7 +294,7 @@ export default async function handler(req) {
         .from('profiles')
         .select('*')
         .eq('id', targetUserId)
-        .single();
+        .maybeSingle();
 
       if (pError || !targetProfile) {
         return new Response(
@@ -363,7 +372,7 @@ export default async function handler(req) {
         .update({ is_active: false })
         .eq('id', targetUserId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         return new Response(
@@ -394,7 +403,7 @@ export default async function handler(req) {
         .update({ is_active: true })
         .eq('id', targetUserId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         return new Response(
@@ -517,7 +526,7 @@ export default async function handler(req) {
           assigned_at: new Date().toISOString(),
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         return new Response(
@@ -612,7 +621,7 @@ export default async function handler(req) {
         .update({ assigned_agent_id: agent_id })
         .eq('id', transactionId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         return new Response(
@@ -648,3 +657,6 @@ export default async function handler(req) {
     );
   }
 }
+
+// Supabase Edge Runtime exige un appel explicite a Deno.serve.
+Deno.serve(handler);
