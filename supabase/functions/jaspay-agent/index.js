@@ -214,19 +214,36 @@ async function handler(req) {
         '&order=last_activity.desc'
     );
 
-    if (!session) {
-      return jsonResponse(
-        { error: 'Aucune session administrative active. Veuillez vous reconnecter.' },
-        403,
-        cors
-      );
+    // Aucune session active : on en ouvre une.
+    // JWT, role (super_admin/admin/agent) et compte actif ont deja ete
+    // verifies. L'autorisation vient de la liste blanche en base
+    // (public.admin_whitelist) : aucun email en dur dans ce fichier.
+    // open_admin_session n'est executable que par service_role et refuse
+    // tout appelant sans role administrateur.
+    let activeSessionId = session ? session.id : null;
+
+    if (!activeSessionId) {
+      const opened = await restRpc('open_admin_session', {
+        p_admin_user_id: userId,
+        p_ttl_hours: 24,
+        p_ip_address: req.headers.get('x-forwarded-for'),
+        p_user_agent: req.headers.get('user-agent'),
+      });
+
+      const row = Array.isArray(opened) ? opened[0] : opened;
+
+      if (!row || !row.session_id) {
+        return jsonResponse({ error: 'Session administrative impossible a ouvrir' }, 403, cors);
+      }
+
+      activeSessionId = row.session_id;
     }
 
     // Mise a jour last_activity (non bloquante)
     try {
       await restPatch(
         'admin_sessions',
-        'id=eq.' + encodeURIComponent(session.id),
+        'id=eq.' + encodeURIComponent(activeSessionId),
         { last_activity: new Date().toISOString() }
       );
     } catch (e) {

@@ -118,18 +118,39 @@ async function handler(req) {
     .limit(1)
     .maybeSingle();
 
-  if (!session) {
-    return new Response(
-      JSON.stringify({ error: 'Aucune session administrative active. Veuillez vous reconnecter.' }),
-      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  // --- Session administrative ---
+  // Aucune session active : on en ouvre une. L'autorisation repose sur la
+  // liste blanche en base (public.admin_whitelist) et sur le role deja
+  // verifie ci-dessus : le JWT, le role super_admin/admin et le compte actif
+  // ont tous ete controles avant d'arriver ici. Un email en dur dans le code
+  // n'intervient jamais.
+  // open_admin_session n'est executable que par service_role et refuse tout
+  // appelant sans role administrateur (garde-fou cote base).
+  let activeSessionId = session ? session.id : null;
+
+  if (!activeSessionId) {
+    const { data: opened, error: openError } = await supabaseAdmin.rpc('open_admin_session', {
+      p_admin_user_id: userId,
+      p_ttl_hours: 24,
+      p_ip_address: req.headers.get('x-forwarded-for'),
+      p_user_agent: req.headers.get('user-agent'),
+    });
+
+    if (openError || !opened) {
+      return new Response(
+        JSON.stringify({ error: 'Session administrative impossible a ouvrir' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    activeSessionId = Array.isArray(opened) ? opened[0].session_id : opened.session_id;
   }
 
-  // Mise à jour last_activity
+  // Mise a jour last_activity
   await supabaseAdmin
     .from('admin_sessions')
     .update({ last_activity: new Date().toISOString() })
-    .eq('id', session.id);
+    .eq('id', activeSessionId);
 
   // Helper : journaliser une action admin
   async function logAdminAction(actionType, targetUserId, targetEntityType, targetEntityId, details = {}) {
@@ -290,7 +311,7 @@ async function handler(req) {
     if (userDetailMatch && req.method === 'GET') {
       const targetUserId = userDetailMatch[1];
 
-      const { data: profile: targetProfile, error: pError } = await supabaseAdmin
+      const { data: targetProfile, error: pError } = await supabaseAdmin
         .from('profiles')
         .select('*')
         .eq('id', targetUserId)
@@ -303,7 +324,7 @@ async function handler(req) {
         );
       }
 
-      const { data: roles: targetRoles } = await supabaseAdmin
+      const { data: targetRoles } = await supabaseAdmin
         .from('user_roles')
         .select('role')
         .eq('user_id', targetUserId);
@@ -354,12 +375,12 @@ async function handler(req) {
       }
 
       // Empêcher un admin ordinaire de suspendre un super_admin
-      const { data: targetRoles } = await supabaseAdmin
+      const { data: suspendTargetRoles } = await supabaseAdmin
         .from('user_roles')
         .select('role')
         .eq('user_id', targetUserId);
 
-      const targetHasSuperAdmin = (targetRoles || []).some((r) => r.role === 'super_admin');
+      const targetHasSuperAdmin = (suspendTargetRoles || []).some((r) => r.role === 'super_admin');
       if (targetHasSuperAdmin && !isSuperAdmin) {
         return new Response(
           JSON.stringify({ error: 'Seul un super administrateur peut suspendre un super administrateur' }),
@@ -378,6 +399,13 @@ async function handler(req) {
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!updated) {
+        return new Response(
+          JSON.stringify({ error: 'Utilisateur introuvable' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -412,6 +440,13 @@ async function handler(req) {
         );
       }
 
+      if (!updated) {
+        return new Response(
+          JSON.stringify({ error: 'Utilisateur introuvable' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       await logAdminAction('reactivate_user', targetUserId, 'user', targetUserId, {
         reason: 'Réactivation de compte par administrateur',
       });
@@ -443,7 +478,7 @@ async function handler(req) {
         .select('*', { head: true })
         .eq('role', 'super_admin');
 
-      const { data: targetRoles: delTargetRoles } = await supabaseAdmin
+      const { data: delTargetRoles } = await supabaseAdmin
         .from('user_roles')
         .select('role')
         .eq('user_id', targetUserId);
@@ -504,7 +539,7 @@ async function handler(req) {
 
       // Un admin ne peut pas supprimer/rétrograder un super_admin
       if (role === 'user' && !isSuperAdmin) {
-        const { data: targetRoles: checkRoles } = await supabaseAdmin
+        const { data: checkRoles } = await supabaseAdmin
           .from('user_roles')
           .select('role')
           .eq('user_id', targetUserId);
@@ -531,6 +566,13 @@ async function handler(req) {
       if (error) {
         return new Response(
           JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!data) {
+        return new Response(
+          JSON.stringify({ error: 'Attribution du role non confirmee' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -630,8 +672,14 @@ async function handler(req) {
         );
       }
 
+      if (!updated) {
+        return new Response(
+          JSON.stringify({ error: 'Transaction introuvable' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       await logAdminAction(
-        userId,
         'assign_transaction_agent',
         agent_id,
         'transaction',
@@ -650,7 +698,7 @@ async function handler(req) {
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('[jaspay-admin-users] Erreur:', err.message);
+    console.error('[jaspay-admin-users] Erreur:', err && err.message ? err.message : err);
     return new Response(
       JSON.stringify({ error: 'Erreur serveur' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

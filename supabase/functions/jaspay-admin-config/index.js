@@ -100,7 +100,7 @@ async function handler(req) {
     .from('profiles')
     .select('is_active')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (!profile || !profile.is_active) {
     return new Response(
@@ -120,18 +120,39 @@ async function handler(req) {
     .limit(1)
     .maybeSingle();
 
-  if (!session) {
-    return new Response(
-      JSON.stringify({ error: 'Aucune session administrative active. Veuillez vous reconnecter.' }),
-      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  // --- Session administrative ---
+  // Aucune session active : on en ouvre une. L'autorisation repose sur la
+  // liste blanche en base (public.admin_whitelist) et sur le role deja
+  // verifie ci-dessus : le JWT, le role super_admin/admin et le compte actif
+  // ont tous ete controles avant d'arriver ici. Un email en dur dans le code
+  // n'intervient jamais.
+  // open_admin_session n'est executable que par service_role et refuse tout
+  // appelant sans role administrateur (garde-fou cote base).
+  let activeSessionId = session ? session.id : null;
+
+  if (!activeSessionId) {
+    const { data: opened, error: openError } = await supabaseAdmin.rpc('open_admin_session', {
+      p_admin_user_id: userId,
+      p_ttl_hours: 24,
+      p_ip_address: req.headers.get('x-forwarded-for'),
+      p_user_agent: req.headers.get('user-agent'),
+    });
+
+    if (openError || !opened) {
+      return new Response(
+        JSON.stringify({ error: 'Session administrative impossible a ouvrir' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    activeSessionId = Array.isArray(opened) ? opened[0].session_id : opened.session_id;
   }
 
-  // Mise à jour last_activity
+  // Mise a jour last_activity
   await supabaseAdmin
     .from('admin_sessions')
     .update({ last_activity: new Date().toISOString() })
-    .eq('id', session.id);
+    .eq('id', activeSessionId);
 
   // Helper : journaliser une action admin
   async function logAdminAction(actionType, targetUserId, targetEntityType, targetEntityId, details = {}) {
