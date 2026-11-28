@@ -501,7 +501,7 @@ export default function Deposit() {
             <li>Choisissez votre bookmaker (1xBet, MelBet ou 1Win).</li>
             <li>Saisissez votre identifiant de compte bookmaker.</li>
             <li>Indiquez le montant à déposer en XOF.</li>
-            <li>Sélectionnez votre opérateur Mobile Money (Mixx by Yas ou Flooz).</li>
+            <li>Sélectionnez votre opérateur Mobile Money (Mixx by Yas ou Moov Money).</li>
             <li>Un agent vérifiera votre paiement et validera votre demande.</li>
           </ul>
         </div>

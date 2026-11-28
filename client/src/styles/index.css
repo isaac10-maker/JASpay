@@ -539,3 +539,25 @@ a:focus-visible {
     @apply text-5xl;
   }
 }
+
+/* ============================================================================
+   Zoom lent de la scène de fond (effet Ken Burns).
+   Le fond reste vivant entre deux rotations (5 min) sans attirer l'œil :
+   20 s par cycle, amplitude 1 -> 1.08. Coupé si prefers-reduced-motion.
+   ============================================================================ */
+@keyframes scene-kenburns {
+  0%   { transform: scale(1) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+  100% { transform: scale(1) translate3d(0, 0, 0); }
+}
+
+.scene-kenburns {
+  animation: scene-kenburns 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-kenburns {
+    animation: none !important;
+  }
+}

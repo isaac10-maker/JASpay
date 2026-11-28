@@ -8,6 +8,8 @@
  * - Arrière-plan légèrement transparent
  * - Panneaux avec effet Glassmorphism modéré
  * - Scènes sportives réelles (WebP, ~90 Ko chacune) au lieu de SVG abstraits
+ * - Zoom lent continu (Ken Burns) sur la scène active, coupé sous
+ *   prefers-reduced-motion
  */
 
 import { useState, useEffect } from 'react';
@@ -32,15 +34,28 @@ const ILLUSTRATIONS = [
 
 export default function BackgroundRotation() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Respect de prefers-reduced-motion : ni rotation, ni zoom si l'utilisateur
+  // a demande la reduction des mouvements.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const handler = () => setReducedMotion(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
+    if (reducedMotion) return undefined;
+
     // Rotation automatique toutes les 5 minutes (300 000 ms)
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % ILLUSTRATIONS.length);
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [reducedMotion]);
 
   const illustration = ILLUSTRATIONS[currentIndex];
 
@@ -55,8 +70,13 @@ export default function BackgroundRotation() {
           alt=""
           loading={i === 0 ? 'eager' : 'lazy'}
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: i === currentIndex ? 0.32 : 0 }}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out ${
+            !reducedMotion && i === currentIndex ? 'scene-kenburns' : ''
+          }`}
+          style={{
+            opacity: i === currentIndex ? 0.32 : 0,
+            animationPlayState: i === currentIndex ? 'running' : 'paused',
+          }}
         />
       ))}
 

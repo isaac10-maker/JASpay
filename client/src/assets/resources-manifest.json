@@ -46,15 +46,15 @@
         },
         "melbet": {
           "path": "client/src/assets/images/logos/bookmakers/melbet/",
-          "file": null,
+          "file": "melbet.png",
           "format": "PNG transparent",
           "dimensions": "300x120",
-          "status": "logo_officiel_manquant_placeholder",
+          "status": "integre",
           "source_requise": "site officiel MelBet ou dépôt de marques reconnu",
           "pages": [
             "Deposit.jsx"
           ],
-          "note": "L'image fournie (melbet-logo-officiel-png-transparent-1.jpg) est une photographie de façade de boutique, pas un logo. Non intégrée, aucun logo fabriqué."
+          "note": "Detoure depuis téléchargement.png (fond #1C1C1C rendu transparent). Logo blanc/jaune -> plaque sombre."
         },
         "1win": {
           "path": "client/src/assets/images/logos/bookmakers/1win/",
@@ -78,7 +78,7 @@
           "pages": [
             "Deposit.jsx"
           ],
-          "note": "L'image fournie est le mot « wallis » en texte noir sur fond blanc, sans « bet ». Non intégrée."
+          "note": "Aucune image fournie par l'utilisateur : « je n'en ai aucune idée »."
         }
       },
       "providers": {
@@ -94,14 +94,19 @@
           ]
         },
         "flooz": {
-          "file": "flooz.png",
-          "status": "logo_officiel_manquant_placeholder",
-          "note": "L'image fournie est une publicité avec une personne, pas un logo détouré. Non intégrée."
+          "file": null,
+          "status": "remplace_par_moov_money",
+          "note": "L'utilisateur indique Moov Money et Mixx by Yas comme operateurs. Plus aucune image Flooz."
         },
         "mixx_by_yas": {
           "file": "mixx-by-yas.png",
           "status": "integre",
-          "note": "Détouré depuis mixx-by-yas-logo-mobile-money-png-1.webp (fond blanc). Logo jaune -> plaque sombre."
+          "note": "Version haute qualite (images.jpg, fond bleu #02377D detoure). Logo jaune -> plaque sombre."
+        },
+        "moov_money": {
+          "file": "moov-money.png",
+          "status": "integre",
+          "note": "Detoure depuis images.png (fond blanc retire). Remplace Flooz comme second operateur."
         }
       },
       "embleme": {
@@ -123,6 +128,16 @@
           "Register.jsx",
           "Dashboard.jsx",
           "favicon"
+        ]
+      },
+      "jaspay_wordmark": {
+        "path": "client/src/assets/images/logos/jaspay-wordmark.png",
+        "format": "PNG transparent",
+        "dimensions": "1289x200",
+        "status": "integre",
+        "note": "Wordmark officiel extrait du visuel fourni (IMG-20261119-WA0024.jpg). Couleurs aplaties et fond navy retire ; les 3 couleurs d'origine sont conservees.",
+        "pages": [
+          "PageShell.jsx (barre de navigation)"
         ]
       }
     },
@@ -398,7 +413,8 @@
       "FloatingElements monte (il existait mais n'etait rendu nulle part).",
       "PageShell cree : barre de navigation partagee (logo, liens actifs, menu mobile).",
       "Animations float.css et fade-in-up.css importees pour la premiere fois.",
-      "Logos : 1xBet, 1win et Mixx by Yas intégrés via components/BrandLogo.jsx (détourage + plaque adaptée à la couleur du logo). Melbet, Wallisbet et Flooz restent des placeholders documentés : les images fournies n'étaient pas des logos."
+      "Logos : 1xBet, 1win et Mixx by Yas intégrés via components/BrandLogo.jsx (détourage + plaque adaptée à la couleur du logo). Melbet, Wallisbet et Flooz restent des placeholders documentés : les images fournies n'étaient pas des logos.",
+      "Logos v2 : wordmark JASpay officiel, Melbet, Moov Money (remplace Flooz), Mixx by Yas haute qualite. Zoom Ken Burns ajoute aux scenes de fond (coupe sous prefers-reduced-motion)."
     ]
   }
 }

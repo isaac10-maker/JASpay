@@ -83,7 +83,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
             Gérez vos dépôts et retraits vers vos comptes bookmaker en toute sécurité.
-            1xBet, MelBet, 1Win et Wallisbet — Mobile Money Mixx by Yas et Flooz.
+            1xBet, MelBet, 1Win et Wallisbet — Mobile Money Mixx by Yas ou Moov Money.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
@@ -242,7 +242,7 @@ export default function Dashboard() {
               </div>
               <h3 className="text-lg font-bold text-white mb-3">Saisissez le montant et le numéro</h3>
               <p className="text-gray-400 text-sm">
-                Indiquez le montant en XOF et votre numéro Mobile Money (Mixx by Yas ou Flooz).
+                Indiquez le montant en XOF et votre numéro Mobile Money (Mixx by Yas ou Moov Money).
               </p>
             </div>
 

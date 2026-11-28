@@ -25,11 +25,13 @@ const BRANDS = [
   // logo officiel — un logo bleu marine disparaît sur le fond noir, un logo
   // blanc disparaît sur une pastille blanche. Les logos ne sont pas retouchés.
   { match: ['1xbet', '1x bet'], path: 'bookmakers/1xbet/1xbet.png', alt: '1xBet', plate: 'light' },
-  { match: ['melbet', 'mel bet'], path: 'bookmakers/melbet/melbet.png', alt: 'Melbet', plate: 'light' },
+  { match: ['melbet', 'mel bet'], path: 'bookmakers/melbet/melbet.png', alt: 'Melbet', plate: 'dark' },
   { match: ['1win', '1 win'], path: 'bookmakers/1win/1win.png', alt: '1win', plate: 'dark' },
   { match: ['wallis'], path: 'bookmakers/wallisbet/wallisbet.png', alt: 'Wallisbet', plate: 'light' },
   { match: ['mixx', 'yas'], path: 'providers/mixx-by-yas/mixx-by-yas.png', alt: 'Mixx by Yas', plate: 'dark' },
-  { match: ['flooz', 'moov'], path: 'providers/flooz/flooz.png', alt: 'Flooz', plate: 'dark' },
+  { match: ['moov'], path: 'providers/moov-money/moov-money.png', alt: 'Moov Money', plate: 'light' },
+  // Flooz reste sans logo : aucune image officielle n'a été fournie.
+  { match: ['flooz'], path: 'providers/flooz/flooz.png', alt: 'Flooz', plate: 'light' },
 ];
 
 const normalize = (s) =>

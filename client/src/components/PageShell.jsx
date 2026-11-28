@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import jaspayMark from '../assets/images/logos/jaspay-mark.png';
+import jaspayWordmark from '../assets/images/logos/jaspay-wordmark.png';
 import BackgroundRotation from './BackgroundRotation';
 import FloatingElements from './FloatingElements';
 
@@ -59,13 +59,12 @@ export default function PageShell({ children, maxWidth = 'max-w-7xl' }) {
               {/* Logo officiel */}
               <Link to="/" className="flex items-center gap-2.5 shrink-0">
                 <img
-                  src={jaspayMark}
+                  src={jaspayWordmark}
                   alt="JASpay"
-                  className="h-9 w-9 rounded-lg drop-shadow-[0_0_14px_rgba(14,165,233,0.45)]"
-                  width="36"
-                  height="36"
+                  className="h-7 w-auto drop-shadow-[0_0_14px_rgba(14,165,233,0.35)]"
+                  width="126"
+                  height="20"
                 />
-                <span className="font-bold text-lg text-white tracking-tight">JASpay</span>
               </Link>
 
               {/* Liens — desktop */}

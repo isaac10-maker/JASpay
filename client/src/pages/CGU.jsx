@@ -51,7 +51,7 @@ export default function CGU() {
           <h2 className="text-xl font-semibold text-electric-400 mb-3">2. Description du service</h2>
           <p className="text-gray-300 mb-4">
             JASpay est une plateforme de paiement et de dépôt/retrait pour comptes bookmakers.
-            Les transactions sont effectuées via Mobile Money (Mixx by Yas, Flooz) et validées par des agents.
+            Les transactions sont effectuées via Mobile Money (Mixx by Yas, Moov Money) et validées par des agents.
           </p>
 
           <h2 className="text-xl font-semibold text-electric-400 mb-3">3. Obligations de l'utilisateur</h2>

@@ -191,7 +191,7 @@ export default function SavedNumbers() {
           >
             <option value="">-- Choisir un opérateur --</option>
             <option value="mixx">Mixx by Yas</option>
-            <option value="flooz">Flooz</option>
+            <option value="moov">Moov Money</option>
             <option value="orange_money">Orange Money</option>
           </select>
         </div>
@@ -292,7 +292,7 @@ export default function SavedNumbers() {
           >
             <option value="">-- Choisir un opérateur --</option>
             <option value="mixx">Mixx by Yas</option>
-            <option value="flooz">Flooz</option>
+            <option value="moov">Moov Money</option>
             <option value="orange_money">Orange Money</option>
           </select>
         </div>
