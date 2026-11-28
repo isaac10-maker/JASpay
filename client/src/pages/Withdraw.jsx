@@ -227,6 +227,12 @@ export default function Withdraw() {
     }
   };
 
+  // La fonction Edge renvoie `provider: { id, name, ... }` (objet imbrique),
+  // pas `provider_id`. Lire la mauvaise cle donnait `undefined` sur tous les
+  // boutons radio : ils partageaient la meme valeur, donc aucune selection
+  // n'etait possible. On accepte les deux formes.
+  const providerIdOf = (m) => m?.provider?.id || m?.provider_id || '';
+
   const getBookmakerName = (id) => {
     const b = bookmakers.find((b) => b.id === id);
     return b ? b.name : '';
@@ -402,8 +408,8 @@ export default function Withdraw() {
                     <input
                       type="radio"
                       name="payment_provider_id"
-                      value={m.provider_id}
-                      checked={form.payment_provider_id === m.provider_id}
+                      value={providerIdOf(m)}
+                      checked={form.payment_provider_id === providerIdOf(m)}
                       onChange={(e) => setForm((prev) => ({ ...prev, payment_provider_id: e.target.value }))}
                       className="w-4 h-4 text-electric-500"
                     />
