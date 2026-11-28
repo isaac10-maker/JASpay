@@ -214,29 +214,29 @@ export default function Withdraw() {
 
   if (step === STEPS.CONFIRMATION) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-offwhite px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full glass-panel p-8 md:p-12 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-success-600 rounded-full mb-6">
             <span className="text-white font-bold text-2xl">✓</span>
           </div>
-          <h1 className="text-2xl font-bold text-marine-900 mb-2">Demande de retrait enregistrée</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Demande de retrait enregistrée</h1>
+          <p className="text-gray-300 mb-6">
             Votre demande de retrait a été créée et sera traitée par un agent.
           </p>
           <div className="card mb-6">
-            <p className="text-sm font-medium text-marine-900 mb-2">Référence de transaction</p>
+            <p className="text-sm font-medium text-white mb-2">Référence de transaction</p>
             <p className="text-xl font-mono text-electric-500 font-bold break-all">
               {form.transaction_reference}
             </p>
           </div>
-          <div className="space-y-3 text-left text-sm text-gray-600">
+          <div className="space-y-3 text-left text-sm text-gray-300">
             <p><strong>Bookmaker :</strong> {getBookmakerName(form.bookmaker_id)}</p>
             <p><strong>Montant :</strong> {form.amount} XOF</p>
             <p><strong>Opérateur :</strong> {getProviderName(form.payment_provider_id)}</p>
             <p><strong>Numéro de réception :</strong> {form.phone_number}</p>
             <p><strong>Statut :</strong> <span className="text-electric-500 font-medium">En attente</span></p>
           </div>
-          <p className="text-xs text-gray-500 mt-6">
+          <p className="text-xs text-gray-400 mt-6">
             Un agent vérifiera votre demande et vous informera une fois le retrait effectué.
           </p>
           <button
@@ -255,12 +255,12 @@ export default function Withdraw() {
   };
 
   return (
-    <div className="min-h-screen bg-offwhite">
+    <div className="min-h-screen">
       <div className="responsive-container py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-marine-900">Effectuer un retrait</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-white">Effectuer un retrait</h1>
+            <p className="text-gray-300">
               Retirez vos gains vers votre numéro Mobile Money.
             </p>
           </div>
@@ -273,13 +273,13 @@ export default function Withdraw() {
                       ? 'bg-electric-500 text-white'
                       : i < currentStepIndex
                         ? 'bg-success-600 text-white'
-                        : 'bg-gray-200 text-gray-400'
+                        : 'bg-white/15 text-gray-400'
                   }`}
                 >
                   {i + 1}
                 </div>
                 {i < STEP_ORDER.length - 1 && (
-                  <div className={`h-px w-4 ${step === s ? 'bg-electric-500' : 'bg-gray-300'}`} />
+                  <div className={`h-px w-4 ${step === s ? 'bg-electric-500' : 'bg-white/20'}`} />
                 )}
               </div>
             ))}
@@ -287,7 +287,7 @@ export default function Withdraw() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+          <div className="mb-6 p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
             {error}
           </div>
         )}
@@ -296,10 +296,10 @@ export default function Withdraw() {
           {/* Étape 1 : Bookmaker */}
           {step === STEPS.BOOKMAKER && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">1. Choisir votre bookmaker</h2>
+              <h2 className="text-lg font-bold text-white mb-4">1. Choisir votre bookmaker</h2>
               <div className="space-y-3">
                 {bookmakers.map((b) => (
-                  <label key={b.id} className="flex items-center gap-3 cursor-pointer p-3 border rounded-lg hover:border-electric-500 hover:bg-marine-50/50 transition-colors">
+                  <label key={b.id} className="flex items-center gap-3 cursor-pointer p-3 border rounded-lg hover:border-electric-500 hover:bg-white/10 transition-colors border-white/20">
                     <input
                       type="radio"
                       name="bookmaker_id"
@@ -309,8 +309,8 @@ export default function Withdraw() {
                       className="w-4 h-4 text-electric-500"
                     />
                     <div>
-                      <div className="font-medium text-marine-900">{b.name}</div>
-                      <div className="text-xs text-gray-500">{b.technical_id}</div>
+                      <div className="font-medium text-white">{b.name}</div>
+                      <div className="text-xs text-gray-400">{b.technical_id}</div>
                     </div>
                   </label>
                 ))}
@@ -321,7 +321,7 @@ export default function Withdraw() {
           {/* Étape 2 : Identifiant compte */}
           {step === STEPS.ACCOUNT && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">2. Identifiant du compte bookmaker</h2>
+              <h2 className="text-lg font-bold text-white mb-4">2. Identifiant du compte bookmaker</h2>
               <div className="space-y-2">
                 <label className="label-text">Identifiant de compte</label>
                 <input
@@ -339,7 +339,7 @@ export default function Withdraw() {
           {/* Étape 3 : Montant */}
           {step === STEPS.AMOUNT && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">3. Montant du retrait</h2>
+              <h2 className="text-lg font-bold text-white mb-4">3. Montant du retrait</h2>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="label-text">Montant (XOF)</label>
@@ -361,10 +361,15 @@ export default function Withdraw() {
           {/* Étape 4 : Opérateur */}
           {step === STEPS.OPERATOR && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">4. Opérateur Mobile Money</h2>
+              <h2 className="text-lg font-bold text-white mb-4">4. Opérateur Mobile Money</h2>
               <div className="space-y-3">
+                {paymentMethods.length === 0 && (
+                  <p className="text-sm text-gray-300 p-3 bg-white/5 rounded-lg">
+                    Aucun opérateur Mobile Money n'est disponible pour ce bookmaker pour le moment. Réessayez plus tard.
+                  </p>
+                )}
                 {paymentMethods.map((m) => (
-                  <label key={m.id} className="flex items-center gap-3 cursor-pointer p-3 border rounded-lg hover:border-electric-500 hover:bg-marine-50/50 transition-colors">
+                  <label key={m.id} className="flex items-center gap-3 cursor-pointer p-3 border rounded-lg hover:border-electric-500 hover:bg-white/10 transition-colors border-white/20">
                     <input
                       type="radio"
                       name="payment_provider_id"
@@ -374,7 +379,7 @@ export default function Withdraw() {
                       className="w-4 h-4 text-electric-500"
                     />
                     <div>
-                      <div className="font-medium text-marine-900">{m.provider.name}</div>
+                      <div className="font-medium text-white">{m.provider.name}</div>
                     </div>
                   </label>
                 ))}
@@ -385,8 +390,8 @@ export default function Withdraw() {
           {/* Étape 5 : Numéro de téléphone */}
           {step === STEPS.PHONE && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">5. Numéro de réception</h2>
-              <p className="text-sm text-gray-600 mb-3">
+              <h2 className="text-lg font-bold text-white mb-4">5. Numéro de réception</h2>
+              <p className="text-sm text-gray-300 mb-3">
                 Le montant sera envoyé sur ce numéro Mobile Money.
               </p>
               <div className="space-y-2">
@@ -400,8 +405,8 @@ export default function Withdraw() {
                   required
                 />
               </div>
-              <div className="p-3 bg-success-50 border border-success-100 rounded-lg">
-                <p className="text-sm text-success-700">
+              <div className="p-3 bg-success-600/15 border border-success-600/30 rounded-lg">
+                <p className="text-sm text-success-500">
                   <strong>Important :</strong> Ne communiquez jamais votre code PIN Mobile Money.
                   L'agent vérifiera le paiement avant validation définitive.
                 </p>
@@ -412,27 +417,27 @@ export default function Withdraw() {
           {/* Étape 6 : Récapitulatif */}
           {step === STEPS.SUMMARY && (
             <>
-              <h2 className="text-lg font-bold text-marine-900 mb-4">6. Récapitulatif</h2>
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+              <h2 className="text-lg font-bold text-white mb-4">6. Récapitulatif</h2>
+              <div className="space-y-4 p-4 bg-white/5 rounded-lg">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Bookmaker</span>
-                  <span className="font-medium text-marine-900">{getBookmakerName(form.bookmaker_id)}</span>
+                  <span className="text-gray-300">Bookmaker</span>
+                  <span className="font-medium text-white">{getBookmakerName(form.bookmaker_id)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Identifiant compte</span>
-                  <span className="font-medium text-marine-900">{form.bookmaker_account_id}</span>
+                  <span className="text-gray-300">Identifiant compte</span>
+                  <span className="font-medium text-white">{form.bookmaker_account_id}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Montant</span>
-                  <span className="font-medium text-marine-900">{form.amount} XOF</span>
+                  <span className="text-gray-300">Montant</span>
+                  <span className="font-medium text-white">{form.amount} XOF</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Opérateur</span>
-                  <span className="font-medium text-marine-900">{getProviderName(form.payment_provider_id)}</span>
+                  <span className="text-gray-300">Opérateur</span>
+                  <span className="font-medium text-white">{getProviderName(form.payment_provider_id)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Numéro de réception</span>
-                  <span className="font-medium text-marine-900">{form.phone_number}</span>
+                  <span className="text-gray-300">Numéro de réception</span>
+                  <span className="font-medium text-white">{form.phone_number}</span>
                 </div>
               </div>
             </>
@@ -469,8 +474,8 @@ export default function Withdraw() {
           </div>
         </form>
 
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-          <p className="font-medium text-marine-900 mb-2">Comment fonctionne le retrait ?</p>
+        <div className="mt-8 p-4 bg-white/5 rounded-lg text-sm text-gray-300">
+          <p className="font-medium text-white mb-2">Comment fonctionne le retrait ?</p>
           <ul className="list-disc list-inside space-y-1">
             <li>Choisissez votre bookmaker.</li>
             <li>Saisissez votre identifiant de compte bookmaker.</li>

@@ -159,15 +159,15 @@ export default function SavedNumbers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-offwhite">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
 
   const addForm = (
     <div className="card mb-6">
-      <h2 className="text-lg font-bold text-marine-900 mb-4">Ajouter un numéro</h2>
+      <h2 className="text-lg font-bold text-white mb-4">Ajouter un numéro</h2>
       <form onSubmit={handleAdd} className="space-y-4">
         <div className="space-y-2">
           <label className="label-text">Numéro Mobile Money</label>
@@ -199,9 +199,9 @@ export default function SavedNumbers() {
             id="is_favorite"
             checked={newNumber.is_favorite}
             onChange={(e) => setNewNumber({ ...newNumber, is_favorite: e.target.checked })}
-            className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+            className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
           />
-          <label htmlFor="is_favorite" className="text-sm text-gray-700 leading-none">
+          <label htmlFor="is_favorite" className="text-sm text-gray-200 leading-none">
             Définir comme numéro favori
           </label>
         </div>
@@ -214,7 +214,7 @@ export default function SavedNumbers() {
 
   const numbersList = numbers.length === 0 ? (
     <div className="card text-center py-8">
-      <p className="text-gray-600">
+      <p className="text-gray-300">
         Aucun numéro enregistré pour le moment.
       </p>
     </div>
@@ -223,12 +223,12 @@ export default function SavedNumbers() {
       {numbers.map((num) => (
         <div key={num.id} className="card p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-marine-900/10 flex items-center justify-center text-marine-900 font-bold">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold">
               {num.phone_number.substring(0, 2)}
             </div>
             <div>
-              <div className="font-medium text-marine-900">{num.phone_number}</div>
-              <div className="text-xs text-gray-500">
+              <div className="font-medium text-white">{num.phone_number}</div>
+              <div className="text-xs text-gray-400">
                 {getProviderName(num.provider)} • {num.is_favorite ? 'Favori' : 'Standard'}
               </div>
             </div>
@@ -237,21 +237,21 @@ export default function SavedNumbers() {
             {num.is_favorite ? (
               <button
                 onClick={() => setFavorite(num.id, true)}
-                className="text-xs text-success-600 hover:text-success-700 font-medium"
+                className="text-xs text-success-500 hover:text-success-500 font-medium"
               >
                 Retirer des favoris
               </button>
             ) : (
               <button
                 onClick={() => setFavorite(num.id, false)}
-                className="text-xs text-gray-600 hover:text-gray-800 font-medium"
+                className="text-xs text-gray-300 hover:text-white font-medium"
               >
                 Définir comme favori
               </button>
             )}
             <button
               onClick={() => handleEditStart(num)}
-              className="text-xs text-electric-500 hover:text-electric-600 font-medium"
+              className="text-xs text-electric-500 hover:text-electric-400 font-medium"
             >
               Modifier
             </button>
@@ -268,8 +268,8 @@ export default function SavedNumbers() {
   );
 
   const editFormSection = editingId ? (
-    <div className="card p-4 mt-4 border border-electric-200 bg-electric-50/30">
-      <h3 className="text-sm font-bold text-marine-900 mb-3">Modifier le numéro</h3>
+    <div className="card p-4 mt-4 border border-electric-500/30 bg-electric-500/10">
+      <h3 className="text-sm font-bold text-white mb-3">Modifier le numéro</h3>
       <form onSubmit={handleEditSave} className="space-y-3">
         <div className="space-y-2">
           <label className="label-text">Numéro</label>
@@ -300,9 +300,9 @@ export default function SavedNumbers() {
             id={`edit_fav_${editingId}`}
             checked={editForm.is_favorite}
             onChange={(e) => setEditForm({ ...editForm, is_favorite: e.target.checked })}
-            className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+            className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
           />
-          <label htmlFor={`edit_fav_${editingId}`} className="text-sm text-gray-700 leading-none">
+          <label htmlFor={`edit_fav_${editingId}`} className="text-sm text-gray-200 leading-none">
             Numéro favori
           </label>
         </div>
@@ -323,36 +323,36 @@ export default function SavedNumbers() {
   ) : null;
 
   return (
-    <div className="min-h-screen bg-offwhite">
+    <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-marine-900">Mes numéros enregistrés</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-white">Mes numéros enregistrés</h1>
+            <p className="text-gray-300">
               Gérez vos numéros Mobile Money pour vos prochaines opérations.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+          <div className="mb-6 p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-3 bg-success-100 border border-success-200 text-success-700 text-sm rounded-lg">
+          <div className="mb-6 p-3 bg-success-600/20 border border-success-600/40 text-success-500 text-sm rounded-lg">
             {success}
           </div>
         )}
 
         {addForm}
-        <h2 className="text-lg font-bold text-marine-900 mb-4">Vos numéros enregistrés</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Vos numéros enregistrés</h2>
         {numbersList}
         {editFormSection}
 
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-          <p className="font-medium text-marine-900 mb-2">Comment utiliser vos numéros enregistrés ?</p>
+        <div className="mt-8 p-4 bg-white/5 rounded-lg text-sm text-gray-300">
+          <p className="font-medium text-white mb-2">Comment utiliser vos numéros enregistrés ?</p>
           <ul className="list-disc list-inside space-y-1">
             <li>Lors d'un dépôt ou d'un retrait, vos numéros enregistrés vous seront proposés.</li>
             <li>Un numéro favori s'affichera en priorité dans les formulaires.</li>

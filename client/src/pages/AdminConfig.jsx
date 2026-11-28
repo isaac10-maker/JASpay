@@ -118,7 +118,7 @@ export default function AdminConfig() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
@@ -126,34 +126,34 @@ export default function AdminConfig() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-marine-900">Configuration de la plateforme</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-white">Configuration de la plateforme</h1>
+        <p className="text-gray-300">
           Gérez les bookmakers, opérateurs de paiement et paramètres généraux.
         </p>
       </div>
 
       {error && (
-        <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+        <div className="p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
           {error}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3 bg-success-100 border border-success-200 text-success-700 text-sm rounded-lg">
+        <div className="p-3 bg-success-600/20 border border-success-600/40 text-success-500 text-sm rounded-lg">
           {successMsg}
         </div>
       )}
 
       {/* Onglets */}
-      <div className="flex gap-4 border-b border-gray-200 mb-6">
+      <div className="flex gap-4 border-b border-white/20 mb-6">
         {['bookmakers', 'providers', 'settings'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab
-                ? 'border-electric-500 text-electric-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-electric-500 text-electric-400'
+                : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
             {tab === 'bookmakers' ? 'Bookmakers' : tab === 'providers' ? 'Opérateurs de paiement' : 'Paramètres'}
@@ -165,34 +165,34 @@ export default function AdminConfig() {
       {activeTab === 'bookmakers' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold text-marine-900 mb-4">Bookmakers configurés</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Bookmakers configurés</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Nom</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">ID technique</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Ordre</th>
+                  <tr className="bg-white/5">
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Nom</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">ID technique</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Ordre</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bookmakers.length === 0 ? (
-                    <tr><td colSpan="4" className="px-4 py-8 text-center text-gray-500">Aucun bookmaker.</td></tr>
+                    <tr><td colSpan="4" className="px-4 py-8 text-center text-gray-400">Aucun bookmaker.</td></tr>
                   ) : (
                     bookmakers.map((b) => (
-                      <tr key={b.id} className="border-b border-gray-100">
-                        <td className="px-4 py-3 text-sm text-gray-700">{b.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 font-mono">{b.technical_id}</td>
+                      <tr key={b.id} className="border-b border-white/10">
+                        <td className="px-4 py-3 text-sm text-gray-200">{b.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300 font-mono">{b.technical_id}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            b.is_active ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
+                            b.is_active ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                            'bg-red-500/15 text-red-400 border border-red-500/30'
                           }`}>
                             {b.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{b.display_order}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{b.display_order}</td>
                       </tr>
                     ))
                   )}
@@ -202,10 +202,10 @@ export default function AdminConfig() {
           </div>
 
           <div className="card p-4">
-            <h3 className="text-sm font-bold text-marine-900 mb-3">Ajouter un bookmaker</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Ajouter un bookmaker</h3>
             <form onSubmit={handleAddBookmaker} className="space-y-3">
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Nom</label>
+                <label className="block text-xs font-medium text-gray-300">Nom</label>
                 <input
                   type="text"
                   className="input-field"
@@ -216,7 +216,7 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Identifiant technique</label>
+                <label className="block text-xs font-medium text-gray-300">Identifiant technique</label>
                 <input
                   type="text"
                   className="input-field"
@@ -227,7 +227,7 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Ordre d'affichage</label>
+                <label className="block text-xs font-medium text-gray-300">Ordre d'affichage</label>
                 <input
                   type="number"
                   className="input-field"
@@ -240,9 +240,9 @@ export default function AdminConfig() {
                   type="checkbox"
                   checked={newBookmaker.is_active}
                   onChange={(e) => setNewBookmaker({ ...newBookmaker, is_active: e.target.checked })}
-                  className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+                  className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Actif</label>
+                <label className="text-sm text-gray-200 leading-none">Actif</label>
               </div>
               <button type="submit" className="btn-primary w-full">
                 Créer le bookmaker
@@ -256,46 +256,46 @@ export default function AdminConfig() {
       {activeTab === 'providers' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold text-marine-900 mb-4">Opérateurs de paiement</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Opérateurs de paiement</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Nom</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">ID technique</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Dépôt</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Retrait</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
+                  <tr className="bg-white/5">
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Nom</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">ID technique</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Dépôt</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Retrait</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
                   </tr>
                 </thead>
                 <tbody>
                   {providers.length === 0 ? (
-                    <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-500">Aucun opérateur.</td></tr>
+                    <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-400">Aucun opérateur.</td></tr>
                   ) : (
                     providers.map((p) => (
-                      <tr key={p.id} className="border-b border-gray-100">
-                        <td className="px-4 py-3 text-sm text-gray-700">{p.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 font-mono">{p.technical_id}</td>
+                      <tr key={p.id} className="border-b border-white/10">
+                        <td className="px-4 py-3 text-sm text-gray-200">{p.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300 font-mono">{p.technical_id}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            p.supports_deposit ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
+                            p.supports_deposit ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                            'bg-red-500/15 text-red-400 border border-red-500/30'
                           }`}>
                             {p.supports_deposit ? 'Oui' : 'Non'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            p.supports_withdrawal ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
+                            p.supports_withdrawal ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                            'bg-red-500/15 text-red-400 border border-red-500/30'
                           }`}>
                             {p.supports_withdrawal ? 'Oui' : 'Non'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            p.is_active ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
+                            p.is_active ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                            'bg-red-500/15 text-red-400 border border-red-500/30'
                           }`}>
                             {p.is_active ? 'Actif' : 'Inactif'}
                           </span>
@@ -309,10 +309,10 @@ export default function AdminConfig() {
           </div>
 
           <div className="card p-4">
-            <h3 className="text-sm font-bold text-marine-900 mb-3">Ajouter un opérateur</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Ajouter un opérateur</h3>
             <form onSubmit={handleAddProvider} className="space-y-3">
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Nom</label>
+                <label className="block text-xs font-medium text-gray-300">Nom</label>
                 <input
                   type="text"
                   className="input-field"
@@ -323,7 +323,7 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Identifiant technique</label>
+                <label className="block text-xs font-medium text-gray-300">Identifiant technique</label>
                 <input
                   type="text"
                   className="input-field"
@@ -338,27 +338,27 @@ export default function AdminConfig() {
                   type="checkbox"
                   checked={newProvider.supports_deposit}
                   onChange={(e) => setNewProvider({ ...newProvider, supports_deposit: e.target.checked })}
-                  className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+                  className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Dépôt</label>
+                <label className="text-sm text-gray-200 leading-none">Dépôt</label>
               </div>
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
                   checked={newProvider.supports_withdrawal}
                   onChange={(e) => setNewProvider({ ...newProvider, supports_withdrawal: e.target.checked })}
-                  className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+                  className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Retrait</label>
+                <label className="text-sm text-gray-200 leading-none">Retrait</label>
               </div>
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
                   checked={newProvider.is_active}
                   onChange={(e) => setNewProvider({ ...newProvider, is_active: e.target.checked })}
-                  className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+                  className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Actif</label>
+                <label className="text-sm text-gray-200 leading-none">Actif</label>
               </div>
               <button type="submit" className="btn-primary w-full">
                 Créer l'opérateur
@@ -372,28 +372,28 @@ export default function AdminConfig() {
       {activeTab === 'settings' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold text-marine-900 mb-4">Paramètres de la plateforme</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Paramètres de la plateforme</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Clé</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Valeur</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Public</th>
+                  <tr className="bg-white/5">
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Clé</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Valeur</th>
+                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Public</th>
                   </tr>
                 </thead>
                 <tbody>
                   {settings.length === 0 ? (
-                    <tr><td colSpan="3" className="px-4 py-8 text-center text-gray-500">Aucun paramètre.</td></tr>
+                    <tr><td colSpan="3" className="px-4 py-8 text-center text-gray-400">Aucun paramètre.</td></tr>
                   ) : (
                     settings.map((s) => (
-                      <tr key={s.id} className="border-b border-gray-100">
-                        <td className="px-4 py-3 text-sm text-gray-700 font-mono">{s.setting_key}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{JSON.stringify(s.setting_value)}</td>
+                      <tr key={s.id} className="border-b border-white/10">
+                        <td className="px-4 py-3 text-sm text-gray-200 font-mono">{s.setting_key}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{JSON.stringify(s.setting_value)}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            s.is_public ? 'bg-success-50 text-success-600 border border-success-100' :
-                            'bg-gray-50 text-gray-600 border border-gray-100'
+                            s.is_public ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                            'bg-white/5 text-gray-300 border border-white/10'
                           }`}>
                             {s.is_public ? 'Oui' : 'Non'}
                           </span>
@@ -407,10 +407,10 @@ export default function AdminConfig() {
           </div>
 
           <div className="card p-4">
-            <h3 className="text-sm font-bold text-marine-900 mb-3">Ajouter un paramètre</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Ajouter un paramètre</h3>
             <form onSubmit={handleAddSetting} className="space-y-3">
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Clé</label>
+                <label className="block text-xs font-medium text-gray-300">Clé</label>
                 <input
                   type="text"
                   className="input-field"
@@ -421,7 +421,7 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Description</label>
+                <label className="block text-xs font-medium text-gray-300">Description</label>
                 <input
                   type="text"
                   className="input-field"
@@ -435,9 +435,9 @@ export default function AdminConfig() {
                   type="checkbox"
                   checked={newSetting.is_public}
                   onChange={(e) => setNewSetting({ ...newSetting, is_public: e.target.checked })}
-                  className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+                  className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
                 />
-                <label className="text-sm text-gray-700 leading-none">Public</label>
+                <label className="text-sm text-gray-200 leading-none">Public</label>
               </div>
               <button type="submit" className="btn-primary w-full">
                 Créer le paramètre

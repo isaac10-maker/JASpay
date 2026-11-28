@@ -168,7 +168,7 @@ export default function AdminAnnouncements() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
@@ -177,33 +177,33 @@ export default function AdminAnnouncements() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-marine-900">Gestion des annonces</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-white">Gestion des annonces</h1>
+          <p className="text-gray-300">
             Créez, modifiez et archivez les annonces affichées aux utilisateurs.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+        <div className="p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="p-3 bg-success-100 border border-success-200 text-success-700 text-sm rounded-lg">
+        <div className="p-3 bg-success-600/20 border border-success-600/40 text-success-500 text-sm rounded-lg">
           {success}
         </div>
       )}
 
       {/* Formulaire */}
       <div className="card p-6">
-        <h2 className="text-lg font-bold text-marine-900 mb-4">
+        <h2 className="text-lg font-bold text-white mb-4">
           {isEditing ? 'Modifier l\'annonce' : 'Créer une annonce'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Titre</label>
+            <label className="block text-sm font-medium text-gray-200">Titre</label>
             <input
               type="text"
               className="input-field w-full"
@@ -213,7 +213,7 @@ export default function AdminAnnouncements() {
             />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Contenu</label>
+            <label className="block text-sm font-medium text-gray-200">Contenu</label>
             <textarea
               className="input-field w-full"
               rows={4}
@@ -223,7 +223,7 @@ export default function AdminAnnouncements() {
             />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Type</label>
+            <label className="block text-sm font-medium text-gray-200">Type</label>
             <select
               className="input-field w-full"
               value={form.type}
@@ -236,7 +236,7 @@ export default function AdminAnnouncements() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Début</label>
+              <label className="block text-sm font-medium text-gray-200">Début</label>
               <input
                 type="datetime-local"
                 className="input-field w-full"
@@ -245,7 +245,7 @@ export default function AdminAnnouncements() {
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Fin</label>
+              <label className="block text-sm font-medium text-gray-200">Fin</label>
               <input
                 type="datetime-local"
                 className="input-field w-full"
@@ -259,9 +259,9 @@ export default function AdminAnnouncements() {
               type="checkbox"
               checked={form.is_active}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 text-electric-500 border-gray-300 rounded focus:ring-electric-500"
+              className="w-4 h-4 text-electric-500 border-white/20 rounded focus:ring-electric-500"
             />
-            <label className="text-sm text-gray-700 leading-none">Active</label>
+            <label className="text-sm text-gray-200 leading-none">Active</label>
           </div>
           <button type="submit" className="btn-primary w-full">
             {isEditing ? 'Modifier' : 'Créer'}
@@ -280,28 +280,28 @@ export default function AdminAnnouncements() {
 
       {/* Liste des annonces */}
       <div className="card p-6">
-        <h2 className="text-lg font-bold text-marine-900 mb-4">Annonces existantes</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Annonces existantes</h2>
         {announcements.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">Aucune annonce.</p>
+          <p className="text-center text-gray-400 py-8">Aucune annonce.</p>
         ) : (
           <div className="space-y-3">
             {announcements.map((a) => (
-              <div key={a.id} className="flex justify-between items-center p-4 border border-gray-100 rounded-lg bg-gray-50">
+              <div key={a.id} className="flex justify-between items-center p-4 border border-white/10 rounded-lg bg-white/5">
                 <div>
-                  <h3 className="font-bold text-marine-900">{a.title}</h3>
-                  <p className="text-sm text-gray-600">{a.content}</p>
+                  <h3 className="font-bold text-white">{a.title}</h3>
+                  <p className="text-sm text-gray-300">{a.content}</p>
                   <div className="flex gap-3 text-xs mt-2">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
-                      a.type === 'info' ? 'bg-blue-50 text-blue-600' :
-                      a.type === 'warning' ? 'bg-yellow-50 text-yellow-600' :
-                      a.type === 'error' ? 'bg-red-50 text-red-600' :
-                      'bg-success-50 text-success-600'
+                      a.type === 'info' ? 'bg-blue-500/15 text-blue-400' :
+                      a.type === 'warning' ? 'bg-yellow-500/15 text-yellow-400' :
+                      a.type === 'error' ? 'bg-red-500/15 text-red-400' :
+                      'bg-success-600/15 text-success-500'
                     }`}>
                       {TYPE_LABELS[a.type] || a.type}
                     </span>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
-                      a.is_active ? 'bg-success-50 text-success-600' :
-                      'bg-gray-50 text-gray-600'
+                      a.is_active ? 'bg-success-600/15 text-success-500' :
+                      'bg-white/5 text-gray-300'
                     }`}>
                       {a.is_active ? 'Actif' : 'Inactif'}
                     </span>
@@ -310,7 +310,7 @@ export default function AdminAnnouncements() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(a)}
-                    className="text-xs text-electric-500 hover:text-electric-600 font-medium"
+                    className="text-xs text-electric-500 hover:text-electric-400 font-medium"
                   >
                     Modifier
                   </button>

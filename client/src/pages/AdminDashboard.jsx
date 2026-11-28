@@ -55,14 +55,14 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-danger/10 border border-danger/20 text-danger rounded-lg">
+      <div className="p-6 bg-danger/20 border border-danger/40 text-danger rounded-lg">
         {error}
       </div>
     );
@@ -71,8 +71,8 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-marine-900">Tableau de bord administrateur</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-white">Tableau de bord administrateur</h1>
+        <p className="text-gray-300">
           Vue d'ensemble de la plateforme JASpay. Les volumes affichés sont les montants
           traités, pas les revenus de la plateforme.
         </p>
@@ -140,53 +140,53 @@ export default function AdminDashboard() {
 
       {/* Activité récente */}
       <div className="card">
-        <h2 className="text-lg font-bold text-marine-900 mb-4">Activité récente</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Activité récente</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Référence</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Type</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Utilisateur</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Montant</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Date</th>
+              <tr className="bg-white/5">
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Référence</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Type</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Utilisateur</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Montant</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Date</th>
               </tr>
             </thead>
             <tbody>
               {(recentActivity || []).map((tx) => (
-                <tr key={tx.transaction_reference} className="border-b border-gray-100">
-                  <td className="px-4 py-3 text-sm font-mono text-marine-900">
+                <tr key={tx.transaction_reference} className="border-b border-white/10">
+                  <td className="px-4 py-3 text-sm font-mono text-white">
                     {tx.transaction_reference}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-200">
                     {tx.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-200">
                     {tx.profiles?.email || 'Inconnu'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-marine-900">
+                  <td className="px-4 py-3 text-sm font-medium text-white">
                     {tx.amount} {tx.currency}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                      tx.status === 'completed' ? 'border-success-100 text-success-600 bg-success-50' :
-                      tx.status === 'rejected' ? 'border-danger/10 text-danger bg-danger/50' :
-                      tx.status === 'pending' ? 'border-electric-100 text-electric-500 bg-electric-50' :
-                      'border-gray-100 text-gray-600 bg-gray-50'
+                      tx.status === 'completed' ? 'border-success-600/30 text-success-500 bg-success-600/15' :
+                      tx.status === 'rejected' ? 'border-danger/30 text-danger bg-danger/50' :
+                      tx.status === 'pending' ? 'border-electric-500/30 text-electric-500 bg-electric-500/10' :
+                      'border-white/10 text-gray-300 bg-white/5'
                     }`}
                     >
                       {tx.status === 'pending' ? 'En attente' : tx.status === 'processing' ? 'En cours' : tx.status === 'completed' ? 'Validée' : 'Rejetée'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-300">
                     {new Date(tx.created_at).toLocaleDateString('fr-FR')}
                   </td>
                 </tr>
               ))}
               {(recentActivity?.length || 0) === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="6" className="px-4 py-8 text-center text-gray-400">
                     Aucune activité récente.
                   </td>
                 </tr>
@@ -196,8 +196,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-        <p className="font-medium text-marine-900 mb-2">Note importante</p>
+      <div className="p-4 bg-white/5 rounded-lg text-sm text-gray-300">
+        <p className="font-medium text-white mb-2">Note importante</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Les volumes affichés correspondent aux montants des transactions traitées, pas aux revenus de la plateforme.</li>
           <li>Toutes les actions administratives sont journalisées dans l'onglet Surveillance.</li>
@@ -210,11 +210,11 @@ export default function AdminDashboard() {
 
 function StatCard({ title, value, subtitle, icon, color }) {
   const colorConfigs = {
-    blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100' },
-    red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100' },
-    green: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-100' },
-    purple: { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-100' },
-    yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-100' },
+    blue: { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' },
+    red: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/30' },
+    green: { bg: 'bg-green-500/15', text: 'text-green-400', border: 'border-green-500/30' },
+    purple: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' },
+    yellow: { bg: 'bg-yellow-500/15', text: 'text-yellow-400', border: 'border-yellow-500/30' },
   };
   const cfg = colorConfigs[color] || colorConfigs.blue;
 
@@ -222,9 +222,9 @@ function StatCard({ title, value, subtitle, icon, color }) {
     <div className={`card p-4 ${cfg.bg} ${cfg.border}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-marine-900">{value}</p>
-          <p className="text-xs text-gray-500">{subtitle}</p>
+          <p className="text-sm font-medium text-gray-300">{title}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
+          <p className="text-xs text-gray-400">{subtitle}</p>
         </div>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cfg.text} ${cfg.bg.replace('50', '100')}`}>
           {icon}

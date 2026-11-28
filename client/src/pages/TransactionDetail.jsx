@@ -14,10 +14,10 @@ const STATUS_LABELS = {
 const STATUS_COLORS = {
   pending: 'text-electric-500',
   processing: 'text-electric-500',
-  awaiting_user_action: 'text-orange-500',
-  completed: 'text-success-600',
+  awaiting_user_action: 'text-orange-400',
+  completed: 'text-success-500',
   rejected: 'text-danger',
-  cancelled: 'text-gray-500',
+  cancelled: 'text-gray-400',
 };
 
 const TYPE_LABELS = {
@@ -63,24 +63,24 @@ export default function TransactionDetail() {
     }
   };
 
-  const getStatusColor = (status) => STATUS_COLORS[status] || 'text-gray-500';
+  const getStatusColor = (status) => STATUS_COLORS[status] || 'text-gray-400';
   const getStatusLabel = (status) => STATUS_LABELS[status] || status;
   const getTypeLabel = (type) => TYPE_LABELS[type] || type;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-offwhite">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
 
   if (error || !transaction) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-offwhite px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full glass-panel p-8 md:p-12 text-center">
-          <h1 className="text-xl font-bold text-marine-900 mb-2">Transaction introuvable</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-xl font-bold text-white mb-2">Transaction introuvable</h1>
+          <p className="text-gray-300 mb-6">{error}</p>
           <button
             onClick={() => navigate('/transactions')}
             className="btn-primary w-full"
@@ -93,12 +93,12 @@ export default function TransactionDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite">
+    <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-marine-900">Détails de la transaction</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-white">Détails de la transaction</h1>
+            <p className="text-gray-300">
               Suivi de votre opération {getTypeLabel(transaction.transaction_type)}.
             </p>
           </div>
@@ -115,90 +115,90 @@ export default function TransactionDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Informations principales */}
           <div className="card">
-            <h2 className="text-lg font-bold text-marine-900 mb-4">Référence</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Référence</h2>
             <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Référence de transaction</p>
-              <p className="font-mono text-xl font-bold text-marine-900 break-all">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Référence de transaction</p>
+              <p className="font-mono text-xl font-bold text-white break-all">
                 {transaction.transaction_reference}
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-marine-900/10 flex items-center justify-center text-marine-900 font-bold shrink-0">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold shrink-0">
                   {transaction.transaction_type === 'deposit' ? '+' : '-'}
                 </div>
                 <div>
-                  <p className="font-medium text-marine-900">
+                  <p className="font-medium text-white">
                     {transaction.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-300">
                     {transaction.bookmaker?.name || 'Bookmaker'}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</p>
-                <p className="text-2xl font-bold text-marine-900">
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Montant</p>
+                <p className="text-2xl font-bold text-white">
                   {transaction.amount} {transaction.currency}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Compte bookmaker</p>
-                <p className="text-sm text-gray-700">{transaction.bookmaker_account_id}</p>
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Compte bookmaker</p>
+                <p className="text-sm text-gray-200">{transaction.bookmaker_account_id}</p>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Opérateur de paiement</p>
-                <p className="text-sm text-gray-700">
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Opérateur de paiement</p>
+                <p className="text-sm text-gray-200">
                   {transaction.provider?.name || 'Non spécifié'}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Numéro de téléphone</p>
-                <p className="text-sm text-gray-700">{transaction.phone_number}</p>
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Numéro de téléphone</p>
+                <p className="text-sm text-gray-200">{transaction.phone_number}</p>
               </div>
             </div>
           </div>
 
           {/* Statut et historique */}
           <div className="card">
-            <h2 className="text-lg font-bold text-marine-900 mb-4">Statut</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Statut</h2>
             <div className="flex items-center gap-3 mb-6">
               <span
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${getStatusColor(transaction.status)} border-${getStatusColor(transaction.status) === 'text-success-600' ? 'success-100' : getStatusColor(transaction.status) === 'text-danger' ? 'danger/10' : 'gray-100'}`}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${getStatusColor(transaction.status)} border-${getStatusColor(transaction.status) === 'text-success-500' ? 'success-100' : getStatusColor(transaction.status) === 'text-danger' ? 'danger/10' : 'gray-100'}`}
               >
                 {getStatusLabel(transaction.status)}
               </span>
             </div>
 
-            <h3 className="text-sm font-bold text-marine-900 mb-3">Historique des événements</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Historique des événements</h3>
             <div className="space-y-4">
               {(transaction.events || []).map((event, i) => (
                 <div key={i} className="relative pl-8">
-                  <div className="absolute left-0 top-1 w-2 h-2 rounded-full bg-gray-300"></div>
-                  <div className="text-sm text-gray-700 mb-1">
+                  <div className="absolute left-0 top-1 w-2 h-2 rounded-full bg-white/20"></div>
+                  <div className="text-sm text-gray-200 mb-1">
                     {event.new_status ? getStatusLabel(event.new_status) : 'Création'}
                     {event.notes ? ` — ${event.notes}` : ''}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-400">
                     {new Date(event.changed_at).toLocaleString('fr-FR')}
                   </p>
                 </div>
               ))}
               {(transaction.events?.length || 0) === 0 && (
-                <p className="text-sm text-gray-500">Aucun événement enregistré pour le moment.</p>
+                <p className="text-sm text-gray-400">Aucun événement enregistré pour le moment.</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 card p-6 border border-gray-100">
-          <h3 className="text-sm font-bold text-marine-900 mb-3">Informations importantes</h3>
-          <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+        <div className="mt-6 card p-6 border border-white/10">
+          <h3 className="text-sm font-bold text-white mb-3">Informations importantes</h3>
+          <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
             <li>
               Cette transaction est traitée par un agent JASpay. La validation dépend de la vérification effective du paiement.
             </li>

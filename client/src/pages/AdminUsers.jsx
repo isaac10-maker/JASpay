@@ -179,7 +179,7 @@ export default function AdminUsers() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
@@ -188,21 +188,21 @@ export default function AdminUsers() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-marine-900">Gestion des utilisateurs</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-white">Gestion des utilisateurs</h1>
+          <p className="text-gray-300">
             Consultez et gérez les comptes inscrits sur JASpay.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+        <div className="p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="p-3 bg-success-100 border border-success-200 text-success-700 text-sm rounded-lg">
+        <div className="p-3 bg-success-600/20 border border-success-600/40 text-success-500 text-sm rounded-lg">
           {success}
         </div>
       )}
@@ -211,7 +211,7 @@ export default function AdminUsers() {
       <div className="card p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">Recherche</label>
             <input
               type="text"
               className="input-field w-full"
@@ -221,7 +221,7 @@ export default function AdminUsers() {
             />
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">Rôle</label>
             <select
               className="input-field w-full"
               value={filterRole}
@@ -236,7 +236,7 @@ export default function AdminUsers() {
             </select>
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">Statut</label>
             <select
               className="input-field w-full"
               value={filterActive}
@@ -254,35 +254,35 @@ export default function AdminUsers() {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Email</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Rôles</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Créé le</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Actions</th>
+            <tr className="bg-white/5">
+              <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Email</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Rôles</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Créé le</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                <td colSpan="5" className="px-4 py-8 text-center text-gray-400">
                   Aucun utilisateur trouvé.
                 </td>
               </tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                <tr key={u.id} className="border-b border-white/10 hover:bg-white/5">
+                  <td className="px-4 py-3 text-sm text-gray-200">
                     {u.email}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {(u.roles || []).map((r) => (
                       <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                        r === 'super_admin' ? 'border-red-100 text-red-600 bg-red-50' :
-                        r === 'admin' ? 'border-blue-100 text-blue-600 bg-blue-50' :
-                        r === 'agent' ? 'border-electric-100 text-electric-500 bg-electric-50' :
-                        r === 'moderator' ? 'border-yellow-100 text-yellow-600 bg-yellow-50' :
-                        'border-gray-100 text-gray-600 bg-gray-50'
+                        r === 'super_admin' ? 'border-red-500/30 text-red-400 bg-red-500/15' :
+                        r === 'admin' ? 'border-blue-500/30 text-blue-400 bg-blue-500/15' :
+                        r === 'agent' ? 'border-electric-500/30 text-electric-500 bg-electric-500/10' :
+                        r === 'moderator' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/15' :
+                        'border-white/10 text-gray-300 bg-white/5'
                       }`}
                     >
                       {ROLE_LABELS[r]}
@@ -291,14 +291,14 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      u.is_active ? 'bg-success-50 text-success-600 border border-success-100' :
-                      'bg-red-50 text-red-600 border border-red-100'
+                      u.is_active ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
+                      'bg-red-500/15 text-red-400 border border-red-500/30'
                     }`}
                     >
                       {u.is_active ? 'Actif' : 'Suspendu'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-300">
                     {new Date(u.created_at).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -307,21 +307,21 @@ export default function AdminUsers() {
                         setViewingUserId(u.id);
                         loadUserDetail(u.id);
                       }}
-                      className="text-xs text-electric-500 hover:text-electric-600 font-medium mr-3"
+                      className="text-xs text-electric-500 hover:text-electric-400 font-medium mr-3"
                     >
                       Voir
                     </button>
                     {u.is_active ? (
                       <button
                         onClick={() => handleSuspend(u.id, u.email)}
-                        className="text-xs text-orange-600 hover:text-orange-700 font-medium mr-3"
+                        className="text-xs text-orange-400 hover:text-orange-300 font-medium mr-3"
                       >
                         Suspendre
                       </button>
                     ) : (
                       <button
                         onClick={() => handleReactivate(u.id, u.email)}
-                        className="text-xs text-green-600 hover:text-green-700 font-medium mr-3"
+                        className="text-xs text-green-400 hover:text-green-300 font-medium mr-3"
                       >
                         Réactiver
                       </button>
@@ -346,10 +346,10 @@ export default function AdminUsers() {
       {viewingUserId && userDetail && (
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-marine-900">Détail du compte</h2>
+            <h2 className="text-lg font-bold text-white">Détail du compte</h2>
             <button
               onClick={() => setViewingUserId(null)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-400 hover:text-gray-200"
             >
               Fermer
             </button>
@@ -357,42 +357,42 @@ export default function AdminUsers() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <p className="text-sm font-semibold text-gray-500 uppercase">Email</p>
-              <p className="text-sm text-gray-700">{userDetail.user.email}</p>
+              <p className="text-sm font-semibold text-gray-400 uppercase">Email</p>
+              <p className="text-sm text-gray-200">{userDetail.user.email}</p>
 
-              <p className="text-sm font-semibold text-gray-500 uppercase mt-4">Statut</p>
+              <p className="text-sm font-semibold text-gray-400 uppercase mt-4">Statut</p>
               <p className={`text-sm font-medium ${
-                userDetail.user.is_active ? 'text-green-600' : 'text-red-600'
+                userDetail.user.is_active ? 'text-green-400' : 'text-red-400'
               }`}>
                 {userDetail.user.is_active ? 'Actif' : 'Suspendu'}
               </p>
 
-              <p className="text-sm font-semibold text-gray-500 uppercase mt-4">Rôles</p>
+              <p className="text-sm font-semibold text-gray-400 uppercase mt-4">Rôles</p>
               <div className="flex flex-wrap gap-2">
                 {(userDetail.user.roles || []).map((r) => (
-                  <span key={r} className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-700">
+                  <span key={r} className="text-xs font-semibold px-2 py-1 rounded bg-white/10 text-gray-200">
                     {ROLE_LABELS[r]}
                   </span>
                 ))}
               </div>
 
-              <p className="text-sm font-semibold text-gray-500 uppercase mt-4">Dates</p>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm font-semibold text-gray-400 uppercase mt-4">Dates</p>
+              <p className="text-sm text-gray-200">
                 Inscrit le {new Date(userDetail.user.created_at).toLocaleDateString('fr-FR')}
               </p>
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-semibold text-gray-500 uppercase">Dernières transactions</p>
+              <p className="text-sm font-semibold text-gray-400 uppercase">Dernières transactions</p>
               {(userDetail.transactions || []).length === 0 ? (
-                <p className="text-sm text-gray-500 italic">Aucune transaction.</p>
+                <p className="text-sm text-gray-400 italic">Aucune transaction.</p>
               ) : (
                 <div className="space-y-2">
                   {userDetail.transactions.map((tx) => (
-                    <div key={tx.transaction_reference} className="flex justify-between items-center py-2 border-b border-gray-50 text-sm">
-                      <span className="font-mono text-marine-900">{tx.transaction_reference}</span>
-                      <span className="text-gray-600">{tx.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'} — {tx.amount} {tx.currency}</span>
-                      <span className="text-xs font-medium text-gray-500">{tx.status}</span>
+                    <div key={tx.transaction_reference} className="flex justify-between items-center py-2 border-b border-white/10 text-sm">
+                      <span className="font-mono text-white">{tx.transaction_reference}</span>
+                      <span className="text-gray-300">{tx.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'} — {tx.amount} {tx.currency}</span>
+                      <span className="text-xs font-medium text-gray-400">{tx.status}</span>
                     </div>
                   ))}
                 </div>
@@ -400,14 +400,14 @@ export default function AdminUsers() {
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <h3 className="text-sm font-bold text-marine-900 mb-3">Gestion des rôles</h3>
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <h3 className="text-sm font-bold text-white mb-3">Gestion des rôles</h3>
             <div className="space-y-2">
               {ROLES.map((r) => {
                 const hasRole = (userDetail.user.roles || []).includes(r);
                 return (
-                  <div key={r} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-700">{ROLE_LABELS[r]}</span>
+                  <div key={r} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <span className="text-sm text-gray-200">{ROLE_LABELS[r]}</span>
                     <div className="flex items-center gap-2">
                       {hasRole ? (
                         <button
@@ -420,7 +420,7 @@ export default function AdminUsers() {
                       ) : (
                         <button
                           onClick={() => handleAssignRole(userDetail.user.id, r)}
-                          className="text-xs text-electric-500 hover:text-electric-600 font-medium"
+                          className="text-xs text-electric-500 hover:text-electric-400 font-medium"
                         >
                           Attribuer
                         </button>
@@ -432,7 +432,7 @@ export default function AdminUsers() {
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-100">
+          <div className="mt-6 pt-6 border-t border-white/10">
             {userDetail.user.is_active ? (
               <button
                 onClick={() => handleSuspend(userDetail.user.id, userDetail.user.email)}

@@ -170,7 +170,7 @@ export default function AdminSurveillance() {
   if (auditLoading || sessionsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-marine-900 font-medium">Chargement…</span>
+        <span className="text-white font-medium">Chargement…</span>
       </div>
     );
   }
@@ -178,36 +178,36 @@ export default function AdminSurveillance() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-marine-900">Surveillance et audit</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-white">Surveillance et audit</h1>
+        <p className="text-gray-300">
           Consultez les journaux d'actions administratives et gérez les sessions actives.
         </p>
       </div>
 
       {auditError && (
-        <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+        <div className="p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
           {auditError}
         </div>
       )}
 
       {sessionsError && (
-        <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-lg">
+        <div className="p-3 bg-danger/20 border border-danger/40 text-danger text-sm rounded-lg">
           {sessionsError}
         </div>
       )}
 
       {/* Onglets */}
-      <div className="flex gap-4 border-b border-gray-200 mb-6">
+      <div className="flex gap-4 border-b border-white/20 mb-6">
         <button
           onClick={() => { }}
-          className="px-4 py-2 text-sm font-medium border-b-2 border-electric-500 text-electric-600"
+          className="px-4 py-2 text-sm font-medium border-b-2 border-electric-500 text-electric-400"
         >
           Journaux d'audit
         </button>
         {isSuperAdmin && (
           <button
             onClick={() => { }}
-            className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+            className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200"
           >
             Sessions admin
           </button>
@@ -217,7 +217,7 @@ export default function AdminSurveillance() {
       {/* Journaux d'audit */}
       <div className="card p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-marine-900">Journaux d'actions administratives</h2>
+          <h2 className="text-lg font-bold text-white">Journaux d'actions administratives</h2>
           <div className="flex gap-2 mt-4 md:mt-0">
             <input
               type="text"
@@ -241,33 +241,33 @@ export default function AdminSurveillance() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Date</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Administrateur</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Action</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Cible</th>
-                <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Détails</th>
+              <tr className="bg-white/5">
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Date</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Administrateur</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Action</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Cible</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Détails</th>
               </tr>
             </thead>
             <tbody>
               {filteredLogs.length === 0 ? (
-                <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-500">Aucune action journalisée.</td></tr>
+                <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-400">Aucune action journalisée.</td></tr>
               ) : (
                 filteredLogs.map((log) => (
-                  <tr key={log.id} className="border-b border-gray-100">
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                  <tr key={log.id} className="border-b border-white/10">
+                    <td className="px-4 py-3 text-sm text-gray-200">
                       {new Date(log.created_at).toLocaleString('fr-FR')}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-300">
                       {log.admin?.email || 'Inconnu'}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-marine-900">
+                    <td className="px-4 py-3 text-sm font-medium text-white">
                       {ACTION_LABELS[log.action_type] || log.action_type}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-300">
                       {log.target_entity_type || '-'}: {log.target_entity_id || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-400">
                       {log.details ? JSON.stringify(log.details).slice(0, 80) : '-'}
                     </td>
                   </tr>
@@ -282,8 +282,8 @@ export default function AdminSurveillance() {
       {isSuperAdmin && (
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-marine-900">Sessions administratives actives</h2>
-            <span className="text-xs font-medium text-success-600 bg-success-100 px-2 py-1 rounded">
+            <h2 className="text-lg font-bold text-white">Sessions administratives actives</h2>
+            <span className="text-xs font-medium text-success-500 bg-success-600/20 px-2 py-1 rounded">
               Super administrateur
             </span>
           </div>
@@ -291,37 +291,37 @@ export default function AdminSurveillance() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Utilisateur</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Dernière activité</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Expire le</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Statut</th>
-                  <th className="px-4 py-3 text-sm font-medium text-gray-600 border-b border-gray-200">Action</th>
+                <tr className="bg-white/5">
+                  <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Utilisateur</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Dernière activité</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Expire le</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.length === 0 ? (
-                  <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-500">Aucune session active.</td></tr>
+                  <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-400">Aucune session active.</td></tr>
                 ) : (
                   sessions.map((s) => {
                     const revoked = s.revoked_at !== null;
                     const expired = new Date(s.expires_at) <= new Date();
                     return (
-                      <tr key={s.id} className={`border-b border-gray-100 ${revoked || expired ? 'bg-red-50' : ''}`}>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                      <tr key={s.id} className={`border-b border-white/10 ${revoked || expired ? 'bg-red-500/15' : ''}`}>
+                        <td className="px-4 py-3 text-sm text-gray-200">
                           {s.admin?.email || 'Inconnu'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-300">
                           {new Date(s.last_activity).toLocaleString('fr-FR')}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-300">
                           {new Date(s.expires_at).toLocaleString('fr-FR')}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            revoked ? 'bg-red-50 text-red-600' :
-                            expired ? 'bg-orange-50 text-orange-600' :
-                            'bg-success-50 text-success-600'
+                            revoked ? 'bg-red-500/15 text-red-400' :
+                            expired ? 'bg-orange-500/15 text-orange-400' :
+                            'bg-success-600/15 text-success-500'
                           }`}>
                             {revoked ? 'Révoquée' : expired ? 'Expirée' : 'Active'}
                           </span>

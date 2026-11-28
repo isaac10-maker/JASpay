@@ -13,6 +13,18 @@
     scroll-behavior: smooth;
   }
 
+  /* Champs natifs (liste déroulante, date, défilement) en thème sombre : texte lisible */
+  select,
+  input,
+  textarea {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #111827;
+    color: #f8fafc;
+  }
+
   body {
     @apply antialiased;
     background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);

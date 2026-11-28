@@ -14,6 +14,7 @@ export default {
           700: '#334155',
         },
         electric: {
+          300: '#7dd3fc',
           400: '#38bdf8', // Bleu électrique modéré
           500: '#0ea5e9',
           600: '#0284c7',
@@ -30,17 +31,21 @@ export default {
           200: '#e2e8f0',
         },
         success: {
+          DEFAULT: '#22c55e',
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
+          400: '#4ade80',
           500: '#22c55e',
           600: '#16a34a', // Vert validé pour opérations validées
           700: '#15803d',
         },
         danger: {
+          DEFAULT: '#ef4444',
           50: '#fef2f2',
           100: '#fee2e2',
           200: '#fecaca',
+          400: '#f87171',
           500: '#ef4444',
           600: '#dc2626', // Rouge pour erreurs et rejets
           700: '#b91c1c',
