@@ -33,7 +33,7 @@ export default function Dashboard() {
             .from('transactions')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
-            .eq('status', 'validated'),
+            .eq('status', 'completed'),
           supabase
             .from('transactions')
             .select('*', { count: 'exact', head: true })

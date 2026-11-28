@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../lib/rateLimit';
-import { messageErreurAuth } from '../utils/authErrors';
+import { messageErreurAuth, isEmailNotConfirmed } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
 import GoogleButton from '../components/GoogleButton';
+import ResendConfirmation from '../components/ResendConfirmation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,47 +13,54 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [rateLimitError, setRateLimitError] = useState('');
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
   const { signIn } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setRateLimitError('');
+    setUnconfirmedEmail('');
     setLoading(true);
+
+    const cleanEmail = email.trim();
 
     try {
       // 1. Vérifier le rate limiting AVANT toute tentative Supabase
-      const rateLimit = await checkRateLimit(email, 'login');
+      const rateLimit = await checkRateLimit(cleanEmail, 'login');
       if (!rateLimit.allowed) {
         setRateLimitError(rateLimit.error);
-        setLoading(false);
         return;
       }
 
-      // 2. Tentative d'authentification
-      const { error: err } = await signIn(email, password);
+      // 2. Tentative d'authentification.
+      //    En cas de succès, PublicOnlyRoute redirige automatiquement vers l'accueil.
+      const { error: err } = await signIn(cleanEmail, password);
 
-      if (err) {
-        // Enregistrer l'échec : incrémente réellement le compteur
-        const rec = await recordFailedAttempt(email, 'login');
+      if (!err) {
+        await resetRateLimit(cleanEmail, 'login');
+        return;
+      }
 
-        if (rec.blocked) {
-          setRateLimitError(rec.error);
-        } else if (err.status === 429 || (err.message || '').includes('Too many attempts')) {
-          setRateLimitError('Trop de tentatives erronées, ressayez dans 5min');
-        } else {
-          const suffix =
-            typeof rec.remaining === 'number'
-              ? ` Tentatives restantes : ${rec.remaining}.`
-              : '';
-          setError(messageErreurAuth(err, 'connexion') + suffix);
-        }
+      // Mot de passe correct mais e-mail non confirmé : ce n'est pas un échec de mot de passe.
+      if (isEmailNotConfirmed(err)) {
+        setUnconfirmedEmail(cleanEmail);
+        return;
+      }
+
+      // 3. Échec réel : incrémente le compteur
+      const rec = await recordFailedAttempt(cleanEmail, 'login');
+
+      if (rec.blocked) {
+        setRateLimitError(rec.error);
+      } else if (err.status === 429 || (err.message || '').includes('Too many attempts')) {
+        setRateLimitError('Trop de tentatives erronées, ressayez dans 5min');
       } else {
-        // Connexion réussie : on remet le compteur à zéro
-        await resetRateLimit(email, 'login');
+        const suffix =
+          typeof rec.remaining === 'number' ? ` Tentatives restantes : ${rec.remaining}.` : '';
+        setError(messageErreurAuth(err, 'connexion') + suffix);
       }
     } catch (err) {
-      await recordFailedAttempt(email, 'login');
       setError(messageErreurAuth(err, 'connexion'));
     } finally {
       setLoading(false);
@@ -85,6 +93,17 @@ export default function Login() {
           </div>
         )}
 
+        {/* E-mail non confirmé : proposer le renvoi */}
+        {unconfirmedEmail && (
+          <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/40 rounded-lg space-y-3">
+            <p className="text-sm text-white">
+              Votre adresse e-mail <span className="font-medium">{unconfirmedEmail}</span> n'est pas
+              encore confirmée. Cliquez sur le lien reçu par e-mail, ou demandez un nouvel envoi.
+            </p>
+            <ResendConfirmation email={unconfirmedEmail} />
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <GoogleButton label="Se connecter avec Google" disabled={loading || !!rateLimitError} />
 
@@ -95,8 +114,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="label-text">Adresse e-mail</label>
+            <label className="label-text" htmlFor="login-email">Adresse e-mail</label>
             <input
+              id="login-email"
               type="email"
               className="input-field input-field-dark"
               placeholder="vous@exemple.com"
@@ -129,16 +149,16 @@ export default function Login() {
         </form>
 
         <p className="mt-8 text-center text-sm text-gray-400">
-          Vous n'avez pas encore de compte ?
-          <a href="/register" className="text-electric-400 font-medium hover:underline">
+          Vous n'avez pas encore de compte ?{' '}
+          <Link to="/register" className="text-electric-400 font-medium hover:underline">
             Créez votre compte
-          </a>
+          </Link>
         </p>
 
         <p className="mt-4 text-center text-sm text-gray-400">
-          <a href="/forgot-password" className="text-electric-400 font-medium hover:underline">
+          <Link to="/forgot-password" className="text-electric-400 font-medium hover:underline">
             Mot de passe oublié ?
-          </a>
+          </Link>
         </p>
 
         <div className="mt-8 pt-6 border-t border-white/20">

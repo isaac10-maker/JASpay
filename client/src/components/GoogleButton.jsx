@@ -23,8 +23,9 @@ export default function GoogleButton({ label = 'Continuer avec Google', disabled
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          // Pas de queryParams : on garde les scopes par defaut (email, profile).
+          redirectTo: `${(import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')}/auth/callback`,
+          // Affiche toujours le choix du compte Google (scopes par defaut : email, profile).
+          queryParams: { prompt: 'select_account' },
         },
       });
 

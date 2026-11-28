@@ -1,17 +1,20 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Navbar — Navigation principale JASpay (thème spatial)
  * Glassmorphism modéré, fonds semi-transparents, bordures fines lumineuses.
  * Contrôle d'accès par rôle côté client uniquement pour l'affichage (le contrôle réel est côté serveur).
  */
-export default function Navbar({ isAuthenticated, onLogout }) {
-  const { user, isAuthenticated: hookIsAuthenticated, onLogout: hookSignOut, userRoles } = useAuth();
+export default function Navbar() {
+  const { user, isAuthenticated: isAuth, signOut, userRoles } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isAuth = hookIsAuthenticated || isAuthenticated;
-  const signOut = hookSignOut || onLogout;
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
   const isAdminOrAgent = userRoles.includes('super_admin') || userRoles.includes('admin') || userRoles.includes('agent');
 
   const navLinks = [
@@ -79,7 +82,7 @@ export default function Navbar({ isAuthenticated, onLogout }) {
               <div className="flex items-center gap-2">
                 {isAuth ? (
                   <button
-                    onClick={signOut}
+                    onClick={handleLogout}
                     className="btn-danger text-xs px-3 py-1.5"
                   >
                     Déconnexion

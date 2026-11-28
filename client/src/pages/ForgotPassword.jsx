@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { messageErreurAuth } from '../utils/authErrors';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sentTo, setSentTo] = useState('');
   const [error, setError] = useState('');
   const { resetPassword } = useAuth();
 
@@ -12,39 +14,42 @@ export default function ForgotPassword() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const { error: err } = await resetPassword(email);
       if (err) {
-        setError(err.message || 'Une erreur est survenue lors de l\'envoi de l\'email.');
+        setError(messageErreurAuth(err, 'reinitialisation'));
       } else {
-        setSent(true);
-        setEmail('');
+        setSentTo(email.trim());
       }
     } catch (err) {
-      setError(err.message || 'Une erreur inattendue est survenue.');
+      setError(messageErreurAuth(err, 'reinitialisation'));
     } finally {
       setLoading(false);
     }
   };
 
-  if (sent) {
+  if (sentTo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
         <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-success-600 rounded-lg mb-4">
             <span className="text-white font-bold text-xl">✓</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Email envoyé</h1>
+          <h1 className="text-2xl font-bold text-white">Vérifiez votre boîte e-mail</h1>
           <p className="text-gray-300 mt-2">
-            Si un compte existe pour cette adresse, vous avez reçu un email avec un lien
-            pour réinitialiser votre mot de passe.
+            Si un compte existe pour <span className="font-medium break-all">{sentTo}</span>, vous allez
+            recevoir un lien pour choisir un nouveau mot de passe. Pensez à regarder dans vos courriers
+            indésirables.
           </p>
-          <button
-            onClick={() => window.location.assign('/login')}
-            className="mt-6 btn-primary w-full"
-          >
+          <Link to="/login" className="mt-6 btn-primary w-full inline-block text-center">
             Retour à la connexion
+          </Link>
+          <button
+            type="button"
+            onClick={() => setSentTo('')}
+            className="mt-4 text-sm text-gray-400 hover:text-electric-400 underline"
+          >
+            Renvoyer avec une autre adresse
           </button>
         </div>
       </div>
@@ -52,7 +57,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
       <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-marine-900 rounded-lg mb-4">
@@ -72,8 +77,9 @@ export default function ForgotPassword() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="label-text">Adresse e-mail</label>
+            <label className="label-text" htmlFor="forgot-email">Adresse e-mail</label>
             <input
+              id="forgot-email"
               type="email"
               className="input-field input-field-dark"
               placeholder="vous@exemple.com"
@@ -84,20 +90,16 @@ export default function ForgotPassword() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn-primary w-full"
-            disabled={loading}
-          >
+          <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-400">
-          Vous vous souvenez de votre mot de passe ?
-          <a href="/login" className="text-electric-400 font-medium hover:underline">
+        <p className="mt-6 text-center text-sm text-gray-400">
+          Vous vous souvenez de votre mot de passe ?{' '}
+          <Link to="/login" className="text-electric-400 font-medium hover:underline">
             Connectez-vous
-          </a>
+          </Link>
         </p>
       </div>
     </div>

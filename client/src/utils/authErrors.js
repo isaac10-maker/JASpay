@@ -128,4 +128,56 @@ export function messageErreurAuth(err, contexte = 'connexion') {
   return repli;
 }
 
+
+// ---------------------------------------------------------------------------
+// Aides ajoutées pour les parcours « e-mail non confirmé » et « lien reçu par e-mail »
+// ---------------------------------------------------------------------------
+
+/** Mot de passe correct mais adresse e-mail pas encore confirmée. */
+export function isEmailNotConfirmed(err) {
+  if (!err) return false;
+  const message = typeof err.message === 'string' ? err.message.toLowerCase() : '';
+  return err.code === 'email_not_confirmed' || message.includes('email not confirmed');
+}
+
+/** Lien de confirmation / réinitialisation expiré ou déjà utilisé. */
+export function isExpiredLink(err) {
+  if (!err) return false;
+  const code = typeof err.code === 'string' ? err.code.toLowerCase() : '';
+  const message = typeof err.message === 'string' ? err.message.toLowerCase() : '';
+  return code === 'otp_expired' || message.includes('expired') || message.includes('already been used');
+}
+
+/** Message à afficher quand l'URL d'arrivée contient une erreur (lien expiré, accès refusé...). */
+export function messageErreurLien(urlError) {
+  if (!urlError) return "Ce lien est invalide ou a déjà été utilisé.";
+  if (isExpiredLink(urlError)) {
+    return 'Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau.';
+  }
+  if ((urlError.code || '').toLowerCase() === 'access_denied') {
+    return 'La connexion a été annulée.';
+  }
+  return "Ce lien est invalide ou a déjà été utilisé.";
+}
+
+/** Lit une erreur renvoyée par Supabase dans l'URL (query ou hash) après un clic sur un lien. */
+export function readUrlAuthError(locationLike) {
+  const loc = locationLike || window.location;
+  const merged = new URLSearchParams(loc.search || '');
+  const hash = (loc.hash || '').replace(/^#/, '');
+  if (hash.includes('=')) {
+    new URLSearchParams(hash).forEach((v, k) => {
+      if (!merged.has(k)) merged.set(k, v);
+    });
+  }
+  const error = merged.get('error');
+  const errorCode = merged.get('error_code');
+  if (!error && !errorCode) return null;
+  return {
+    code: (errorCode || error || '').toLowerCase(),
+    message: (merged.get('error_description') || '').replace(/\+/g, ' '),
+    status: 400,
+  };
+}
+
 export default messageErreurAuth;

@@ -1,5 +1,5 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * AdminLayout — Disposition de l'espace administrateur (thème spatial).
@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
  * Le contrôle d'accès est effectué côté serveur (backend + RLS).
  */
 export default function AdminLayout() {
-  const { user, userRoles, isAuthenticated, onLogout: hookSignOut } = useAuth();
+  const { user, userRoles, isAuthenticated, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -25,9 +25,13 @@ export default function AdminLayout() {
 
   // Vérifier si l'utilisateur a accès à l'admin
   if (!isAuthenticated || !isAdminOrSuper) {
-    navigate('/login', { replace: true });
-    return null;
+    return <Navigate to="/login" replace />;
   }
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="min-h-screen">
@@ -49,7 +53,7 @@ export default function AdminLayout() {
                 {userRoles.length > 0 ? userRoles.join(', ') : 'admin'}
               </span>
               <button
-                onClick={hookSignOut}
+                onClick={handleLogout}
                 className="text-sm text-white/70 hover:text-electric-400 transition-colors"
               >
                 Déconnexion
