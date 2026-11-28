@@ -79,7 +79,7 @@ export default function FloatingElements() {
           key={el.id}
           src={el.src}
           alt={el.alt}
-          className={`absolute ${reducedMotion ? 'opacity-20' : el.animation} opacity-60`}
+          className={`absolute ${reducedMotion ? 'opacity-10' : el.animation} opacity-30`}
           style={{
             top: el.top,
             left: el.left,

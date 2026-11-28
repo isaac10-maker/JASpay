@@ -6,7 +6,8 @@ Ce répertoire contient toutes les ressources visuelles de la refonte immersive 
 
 ```
 client/src/assets/
-├── images/                    # PNG transparents
+├── images/                    # PNG transparents + scenes WebP
+│   ├── logos/jaspay-mark.png  # Embleme JASpay (128 px) + jaspay-mark-180.png (favicon)
 │   ├── logos/                 # Logos (JASpay, bookmakers, opérateurs)
 │   ├── scenes/                # Scènes sportives (football, basketball, tennis, golf)
 │   ├── objects/               # Objets détourés (ballons, trophées, jetons, billets)

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import BackButton from '../components/BackButton';
+import PageShell from '../components/PageShell';
 
 export default function SavedNumbers() {
   const { user } = useAuth();
@@ -324,9 +325,9 @@ export default function SavedNumbers() {
   ) : null;
 
   return (
-    <div className="min-h-screen">
-            <BackButton fallback="/" label="Retour" className="mb-4" />
+    <PageShell>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <BackButton fallback="/" label="Retour" className="mb-4" />
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Mes numéros enregistrés</h1>
@@ -363,6 +364,6 @@ export default function SavedNumbers() {
           </ul>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

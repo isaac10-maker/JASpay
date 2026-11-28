@@ -6,6 +6,8 @@ import { messageErreurAuth, isEmailNotConfirmed } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
 import GoogleButton from '../components/GoogleButton';
 import ResendConfirmation from '../components/ResendConfirmation';
+import jaspayMark from '../assets/images/logos/jaspay-mark.png';
+import BackgroundRotation from '../components/BackgroundRotation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -68,12 +70,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
+    <>
+      <BackgroundRotation />
+      <div className="min-h-screen flex items-center justify-center px-4">
       <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-marine-900 rounded-lg mb-4">
-            <span className="text-white font-bold text-xl">J</span>
+            <img src={jaspayMark} alt="JASpay" className="h-14 w-14 rounded-2xl shadow-[0_0_28px_rgba(14,165,233,0.45)]" width="56" height="56" />
           </div>
           <h1 className="text-2xl font-bold text-white">JASpay</h1>
           <p className="text-gray-300 mt-2">Connexion à votre espace personnel</p>
@@ -169,5 +173,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   );
 }

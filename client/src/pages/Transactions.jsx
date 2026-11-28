@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import BackButton from '../components/BackButton';
+import PageShell from '../components/PageShell';
 
 const STATUS_LABELS = {
   pending: 'En attente',
@@ -84,9 +85,9 @@ export default function Transactions() {
   }
 
   return (
-    <div className="min-h-screen">
-            <BackButton fallback="/" label="Retour" className="mb-4" />
+    <PageShell>
       <div className="responsive-container py-6">
+        <BackButton fallback="/" label="Retour" className="mb-4" />
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Mes transactions</h1>
@@ -183,6 +184,6 @@ export default function Transactions() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

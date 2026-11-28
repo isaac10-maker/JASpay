@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import PageShell from '../components/PageShell';
+import jaspayMark from '../assets/images/logos/jaspay-mark.png';
 
 export default function Dashboard() {
   const { user, profile, signOut, isAdmin, isSuperAdmin, isAgent, isModerator } = useAuth();
@@ -69,106 +71,12 @@ export default function Dashboard() {
   }[profile?.role || 'user'];
 
   return (
-    <div className="min-h-screen bg-space-900 text-white relative overflow-hidden">
-      {/* Fond dégradé */}
-      <div className="fixed inset-0 z-[-1]">
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0"
-        >
-          <defs>
-            <radialGradient id="heroGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#1e293b" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#090a0f" stopOpacity="1" />
-            </radialGradient>
-          </defs>
-          <rect width="100" height="100" fill="url(#heroGradient)" />
-        </svg>
-      </div>
-
-      {/* Barre de navigation de la page.
-          `fixed` + racine `overflow-hidden` = la barre se détachait du flux et
-          restait collée en haut de la fenêtre, par-dessus le contenu. `sticky`
-          la garde dans le flux : elle occupe sa hauteur (64 px) et le contenu
-          commence dessous, sans chevauchement. */}
-      <nav className="sticky top-0 z-50">
-        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-9 h-9 bg-gradient-to-br from-electric-500 to-marine-900 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(14,165,233,0.4)]">
-                  <span className="text-white font-bold text-sm">J</span>
-                </div>
-                <span className="font-bold text-xl text-white tracking-tight">JASpay</span>
-              </div>
-
-              <div className="hidden md:flex items-center gap-2">
-                <a
-                  href="/"
-                  className="text-sm font-medium text-electric-400 px-4 py-2.5 rounded-lg bg-white/10 border border-electric-500/30 shadow-[0_0_15px_rgba(14,165,233,0.2)]"
-                >
-                  Accueil
-                </a>
-                <a
-                  href="/depot"
-                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
-                >
-                  Dépôt
-                </a>
-                <a
-                  href="/retrait"
-                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
-                >
-                  Retrait
-                </a>
-                <a
-                  href="/transactions"
-                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
-                >
-                  Mes transactions
-                </a>
-                <a
-                  href="/saved-numbers"
-                  className="text-sm font-medium text-white/60 hover:text-electric-400 hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all duration-200"
-                >
-                  Mes numéros
-                </a>
-              </div>
-              {isAdminOrAgent && (
-                <a
-                  href="/admin"
-                  className="text-sm font-medium text-electric-400 px-4 py-2.5 rounded-lg bg-white/10 border border-electric-500/30 shadow-[0_0_15px_rgba(14,165,233,0.2)]"
-                >
-                  Administration
-                </a>
-              )}
-              <div className="flex items-center gap-4">
-                <div className="hidden md:flex flex-col items-end">
-                  <p className="text-sm font-medium text-white">{user?.email}</p>
-                  <p className="text-xs text-gray-400 capitalize">
-                    {roleLabel}
-                  </p>
-                </div>
-                <button
-                  onClick={signOut}
-                  className="btn-danger text-xs px-3 py-1.5"
-                >
-                  Déconnexion
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <PageShell>
       {/* Hero Section */}
       <header className="relative z-10 pt-10 sm:pt-14 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-marine-900 rounded-2xl mb-6 border border-white/20 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
-            <span className="text-white font-bold text-2xl">J</span>
+            <img src={jaspayMark} alt="JASpay" className="h-20 w-20 rounded-2xl shadow-[0_0_34px_rgba(14,165,233,0.5)]" width="80" height="80" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
             Bienvenue sur <span className="text-electric-400">JASpay</span>
@@ -367,6 +275,6 @@ export default function Dashboard() {
           </div>
         </div>
       </footer>
-    </div>
+    </PageShell>
   );
 }

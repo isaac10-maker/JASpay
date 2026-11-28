@@ -1,3 +1,5 @@
+@import '../assets/animations/float.css';
+@import '../assets/animations/fade-in-up.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,6 +13,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Couleur de repli : les calques de fond (étoiles, scènes) sont en z-[-1],
+     donc le conteneur racine de chaque page ne porte volontairement aucun
+     fond opaque. Sans ceci, une page sans calque serait blanche. */
+  body {
+    background-color: #090a0f;
   }
 
   /* Aucun débordement horizontal : rien ne doit sortir de la largeur de l'écran.

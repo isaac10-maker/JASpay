@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { invokeEdge } from '../lib/edgeFunctions';
 import BackButton from '../components/BackButton';
+import PageShell from '../components/PageShell';
 
 const STEPS = {
   BOOKMAKER: 'bookmaker',
@@ -256,9 +257,9 @@ export default function Deposit() {
   };
 
   return (
-        <div className="min-h-screen">
-            <BackButton fallback="/" label="Retour" className="mb-4" />
+        <PageShell>
       <div className="responsive-container py-6">
+        <BackButton fallback="/" label="Retour" className="mb-4" />
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white">Effectuer un dépôt</h1>
@@ -502,6 +503,6 @@ export default function Deposit() {
           </ul>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

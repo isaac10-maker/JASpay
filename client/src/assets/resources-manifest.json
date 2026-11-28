@@ -13,12 +13,23 @@
     "logos": {
       "jaspay": {
         "path": "client/src/assets/images/logos/jaspay/",
-        "files": ["jaspay-logo.png", "jaspay-logo-icon.png"],
+        "files": [
+          "jaspay-logo.png",
+          "jaspay-logo-icon.png"
+        ],
         "format": "PNG transparent",
-        "dimensions": ["400x140", "64x64"],
+        "dimensions": [
+          "400x140",
+          "64x64"
+        ],
         "status": "en_attente_verification_logo_actuel",
         "note": "Aucun fichier logo image n'existe actuellement dans le dépôt. Le 'J' textuel est utilisé dans les composants. Vérifier avant création.",
-        "pages": ["Navbar.jsx", "Login.jsx", "Register.jsx", "Dashboard.jsx"]
+        "pages": [
+          "Navbar.jsx",
+          "Login.jsx",
+          "Register.jsx",
+          "Dashboard.jsx"
+        ]
       },
       "bookmakers": {
         "1xbet": {
@@ -28,7 +39,9 @@
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel 1xBet ou dépôt de marques reconnu",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         },
         "melbet": {
           "path": "client/src/assets/images/logos/bookmakers/melbet/",
@@ -37,7 +50,9 @@
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel MelBet ou dépôt de marques reconnu",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         },
         "1win": {
           "path": "client/src/assets/images/logos/bookmakers/1win/",
@@ -46,7 +61,9 @@
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel 1Win ou dépôt de marques reconnu",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         },
         "wallisbet": {
           "path": "client/src/assets/images/logos/bookmakers/wallisbet/",
@@ -55,7 +72,9 @@
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel Wallisbet ou dépôt de marques reconnu",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         }
       },
       "providers": {
@@ -66,7 +85,9 @@
           "dimensions": "200x80",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel Mixx by Yas",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         },
         "flooz": {
           "path": "client/src/assets/images/logos/providers/flooz/",
@@ -75,8 +96,31 @@
           "dimensions": "200x80",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel Flooz",
-          "pages": ["Deposit.jsx"]
+          "pages": [
+            "Deposit.jsx"
+          ]
         }
+      },
+      "embleme": {
+        "path": "client/src/assets/images/logos/",
+        "files": [
+          "jaspay-mark.png",
+          "jaspay-mark-180.png"
+        ],
+        "format": "PNG",
+        "dimensions": [
+          "128x128",
+          "180x180"
+        ],
+        "status": "actif",
+        "note": "Embleme seul (disque + etoile + orbite), genere pour remplacer jaspay-logo-icon.png (64x35) inexploitable : ce fichier contient le wordmark et devient flou des qu'il est agrandi.",
+        "pages": [
+          "PageShell.jsx",
+          "Login.jsx",
+          "Register.jsx",
+          "Dashboard.jsx",
+          "favicon"
+        ]
       }
     },
     "scenes": {
@@ -86,7 +130,10 @@
         "format": "PNG transparent",
         "dimensions": "1200x600",
         "status": "visuel_original_a_creer",
-        "pages": ["Dashboard.jsx", "BackgroundRotation.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "BackgroundRotation.jsx"
+        ]
       },
       "basketball": {
         "path": "client/src/assets/images/scenes/basketball/",
@@ -94,7 +141,10 @@
         "format": "PNG transparent",
         "dimensions": "1200x600",
         "status": "visuel_original_a_creer",
-        "pages": ["Dashboard.jsx", "BackgroundRotation.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "BackgroundRotation.jsx"
+        ]
       },
       "tennis": {
         "path": "client/src/assets/images/scenes/tennis/",
@@ -102,7 +152,10 @@
         "format": "PNG transparent",
         "dimensions": "1200x600",
         "status": "visuel_original_a_creer",
-        "pages": ["Dashboard.jsx", "BackgroundRotation.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "BackgroundRotation.jsx"
+        ]
       },
       "golf": {
         "path": "client/src/assets/images/scenes/golf/",
@@ -110,7 +163,10 @@
         "format": "PNG transparent",
         "dimensions": "1200x600",
         "status": "visuel_original_a_creer",
-        "pages": ["Dashboard.jsx", "BackgroundRotation.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "BackgroundRotation.jsx"
+        ]
       }
     },
     "objects": {
@@ -120,7 +176,10 @@
         "format": "PNG transparent",
         "dimensions": "300x300",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx", "Deposit.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "Deposit.jsx"
+        ]
       },
       "ball-basketball": {
         "path": "client/src/assets/images/objects/ball-basketball/",
@@ -128,7 +187,9 @@
         "format": "PNG transparent",
         "dimensions": "300x300",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       },
       "ball-tennis": {
         "path": "client/src/assets/images/objects/ball-tennis/",
@@ -136,7 +197,9 @@
         "format": "PNG transparent",
         "dimensions": "200x200",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       },
       "ball-golf": {
         "path": "client/src/assets/images/objects/ball-golf/",
@@ -144,7 +207,9 @@
         "format": "PNG transparent",
         "dimensions": "150x150",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       },
       "trophy-gold": {
         "path": "client/src/assets/images/objects/trophy-gold/",
@@ -152,7 +217,10 @@
         "format": "PNG transparent",
         "dimensions": "400x400",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx", "AdminDashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx",
+          "AdminDashboard.jsx"
+        ]
       },
       "trophy-silver": {
         "path": "client/src/assets/images/objects/trophy-silver/",
@@ -160,7 +228,9 @@
         "format": "PNG transparent",
         "dimensions": "400x400",
         "status": "objet_detoure_a_creer",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       },
       "chip-gold": {
         "path": "client/src/assets/images/objects/chip-gold/",
@@ -168,7 +238,10 @@
         "format": "PNG transparent",
         "dimensions": "120x120",
         "status": "objet_detoure_a_creer",
-        "pages": ["Deposit.jsx", "AdminConfig.jsx"]
+        "pages": [
+          "Deposit.jsx",
+          "AdminConfig.jsx"
+        ]
       },
       "ticket-decoratif": {
         "path": "client/src/assets/images/objects/ticket-decoratif/",
@@ -177,7 +250,10 @@
         "dimensions": "250x400",
         "status": "objet_detoure_a_creer",
         "note": "Billet décoratif générique uniquement, pas de faux billet officiel",
-        "pages": ["AdminDashboard.jsx", "AdminSurveillance.jsx"]
+        "pages": [
+          "AdminDashboard.jsx",
+          "AdminSurveillance.jsx"
+        ]
       }
     },
     "financial": {
@@ -187,7 +263,11 @@
         "format": "PNG transparent",
         "dimensions": "200x100",
         "status": "element_original_a_creer",
-        "pages": ["Deposit.jsx", "Withdraw.jsx", "Dashboard.jsx"]
+        "pages": [
+          "Deposit.jsx",
+          "Withdraw.jsx",
+          "Dashboard.jsx"
+        ]
       },
       "coin-stack": {
         "path": "client/src/assets/images/financial/coin-stack/",
@@ -196,7 +276,9 @@
         "dimensions": "300x200",
         "status": "element_original_a_creer",
         "note": "Élément décoratif générique, pas de monnaie officielle",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       },
       "banknote-decor": {
         "path": "client/src/assets/images/financial/banknote-decor/",
@@ -205,7 +287,9 @@
         "dimensions": "400x200",
         "status": "element_original_a_creer",
         "note": "Billet décoratif générique uniquement, pas de faux billet officiel FCFA/XOF",
-        "pages": ["Dashboard.jsx"]
+        "pages": [
+          "Dashboard.jsx"
+        ]
       }
     },
     "svgs": {
@@ -213,34 +297,46 @@
         "football-stade": {
           "path": "client/src/assets/svgs/background-rotation/football-stade.svg",
           "status": "fichier_existant",
-          "pages": ["BackgroundRotation.jsx"]
+          "pages": [
+            "BackgroundRotation.jsx"
+          ]
         },
         "basketball-terrain": {
           "path": "client/src/assets/svgs/background-rotation/basketball-terrain.svg",
           "status": "fichier_existant",
-          "pages": ["BackgroundRotation.jsx"]
+          "pages": [
+            "BackgroundRotation.jsx"
+          ]
         },
         "tennis-court": {
           "path": "client/src/assets/svgs/background-rotation/tennis-court.svg",
           "status": "fichier_existant",
-          "pages": ["BackgroundRotation.jsx"]
+          "pages": [
+            "BackgroundRotation.jsx"
+          ]
         },
         "golf-green": {
           "path": "client/src/assets/svgs/background-rotation/golf-green.svg",
           "status": "fichier_existant",
-          "pages": ["BackgroundRotation.jsx"]
+          "pages": [
+            "BackgroundRotation.jsx"
+          ]
         }
       },
       "glitch": {
         "scanlines": {
           "path": "client/src/assets/svgs/glitch/scanlines.svg",
           "status": "fichier_existant",
-          "pages": ["styles/index.css"]
+          "pages": [
+            "styles/index.css"
+          ]
         },
         "glitch-text": {
           "path": "client/src/assets/svgs/glitch/glitch-text.svg",
           "status": "fichier_existant",
-          "pages": ["styles/index.css"]
+          "pages": [
+            "styles/index.css"
+          ]
         }
       }
     },
@@ -248,27 +344,39 @@
       "float": {
         "path": "client/src/assets/animations/float.css",
         "status": "fichier_existant",
-        "pages": ["styles/index.css", "Dashboard.jsx"]
+        "pages": [
+          "styles/index.css",
+          "Dashboard.jsx"
+        ]
       },
       "fade-in-up": {
         "path": "client/src/assets/animations/fade-in-up.css",
         "status": "fichier_existant",
-        "pages": ["styles/index.css", "Dashboard.jsx"]
+        "pages": [
+          "styles/index.css",
+          "Dashboard.jsx"
+        ]
       },
       "pulse": {
         "path": "client/src/assets/animations/pulse.css",
         "status": "fichier_existant",
-        "pages": ["styles/index.css"]
+        "pages": [
+          "styles/index.css"
+        ]
       },
       "glitch": {
         "path": "client/src/assets/animations/glitch.css",
         "status": "fichier_existant",
-        "pages": ["styles/index.css"]
+        "pages": [
+          "styles/index.css"
+        ]
       },
       "rotate-slow": {
         "path": "client/src/assets/animations/rotate-slow.css",
         "status": "fichier_existant",
-        "pages": ["styles/index.css"]
+        "pages": [
+          "styles/index.css"
+        ]
       }
     }
   },
@@ -278,5 +386,15 @@
     "Intégrer les ressources dans les composants React (sans toucher à la logique métier)",
     "Build Vite et validation visuelle",
     "Déploiement uniquement après autorisation explicite"
-  ]
+  ],
+  "derniereMiseAJour": {
+    "date": "2026-11-16",
+    "travaux": [
+      "Scenes PNG (3,71 Mo au total) converties en WebP 1280 px : 321 Ko au total.",
+      "BackgroundRotation rebranche sur les 4 scenes ; ses 4 SVG abstraits inline sont retires.",
+      "FloatingElements monte (il existait mais n'etait rendu nulle part).",
+      "PageShell cree : barre de navigation partagee (logo, liens actifs, menu mobile).",
+      "Animations float.css et fade-in-up.css importees pour la premiere fois."
+    ]
+  }
 }

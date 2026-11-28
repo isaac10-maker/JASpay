@@ -5,6 +5,7 @@ import { messageErreurAuth } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
 import GoogleButton from '../components/GoogleButton';
 import ResendConfirmation from '../components/ResendConfirmation';
+import BackgroundRotation from '../components/BackgroundRotation';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -56,7 +57,9 @@ export default function Register() {
 
   if (sentTo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
+      <>
+      <BackgroundRotation />
+      <div className="min-h-screen flex items-center justify-center px-4 py-24">
         <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-success-600 rounded-full mb-6 shadow-[0_0_20px_rgba(22,163,74,0.4)]">
             <span className="text-white font-bold text-2xl">✓</span>
@@ -90,11 +93,14 @@ export default function Register() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
+    <>
+    <BackgroundRotation />
+    <div className="min-h-screen flex items-center justify-center px-4 py-24">
       <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-marine-900 rounded-lg mb-4">
@@ -195,5 +201,6 @@ export default function Register() {
         </p>
       </div>
     </div>
+    </>
   );
 }

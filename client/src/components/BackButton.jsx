@@ -47,8 +47,13 @@ export default function BackButton({
     else navigate(fallback, { replace: true });
   }, [to, fallback, navigate, location.key]);
 
+  // `--back-top` est pose par PageShell (barre de navigation = 64 px).
+  // Sans cette marge, le bouton se collerait sous la barre en defilant.
   return (
-    <div className={`sticky top-4 z-30 flex ${className}`}>
+    <div
+      className={`sticky z-30 flex ${className}`}
+      style={{ top: 'var(--back-top, 1rem)' }}
+    >
       <button
         type="button"
         onClick={handleClick}
