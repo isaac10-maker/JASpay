@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import BackButton from '../components/BackButton';
 
 const STATUS_LABELS = {
   pending: 'En attente',
@@ -94,6 +95,7 @@ export default function TransactionDetail() {
 
   return (
     <div className="min-h-screen">
+            <BackButton fallback="/" label="Retour" className="mb-4" />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { initialUrlAuthError } from '../lib/supabase';
 import { messageErreurLien, isExpiredLink } from '../utils/authErrors';
 import ResendConfirmation from '../components/ResendConfirmation';
+import BackButton from '../components/BackButton';
 
 /**
  * Page d'arrivée après :
@@ -30,7 +31,11 @@ export default function AuthCallback() {
     : "Ce lien est invalide ou a déjà été utilisé. Si votre compte est déjà confirmé, connectez-vous.";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4">
+    <div className="min-h-screen bg-space-900 px-4 py-6">
+      <div className="relative z-10 max-w-md mx-auto">
+        <BackButton to="/login" label="Retour a la connexion" />
+      </div>
+      <div className="min-h-[70vh] flex items-center justify-center">
       <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
         {status === 'loading' && (
           <>
@@ -88,6 +93,7 @@ export default function AuthCallback() {
             </Link>
           </>
         )}
+      </div>
       </div>
     </div>
   );

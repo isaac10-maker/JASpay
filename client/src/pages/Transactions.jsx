@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import BackButton from '../components/BackButton';
 
 const STATUS_LABELS = {
   pending: 'En attente',
@@ -84,6 +85,7 @@ export default function Transactions() {
 
   return (
     <div className="min-h-screen">
+            <BackButton fallback="/" label="Retour" className="mb-4" />
       <div className="responsive-container py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>

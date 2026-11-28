@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { invokeEdge } from '../lib/edgeFunctions';
+import BackButton from '../components/BackButton';
 
 const TYPE_LABELS = {
   info: 'Information',
@@ -175,6 +176,7 @@ export default function AdminAnnouncements() {
 
   return (
     <div className="space-y-6">
+      <BackButton to="/admin" label="Retour au tableau de bord" className="mb-1" />
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Gestion des annonces</h1>

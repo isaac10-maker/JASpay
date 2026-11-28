@@ -1,12 +1,13 @@
 import { useAuth } from '../hooks/useAuth';
+import BackButton from '../components/BackButton';
 
 export default function Confidentialite() {
   const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-space-900 px-4 py-8">
-      <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+      <nav className="sticky top-0 z-50 -mx-4 mb-4">
+        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 shrink-0">
@@ -36,7 +37,8 @@ export default function Confidentialite() {
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto py-12">
+      <div className="max-w-3xl mx-auto pt-2 pb-12">
+        <BackButton fallback="/" label="Retour" className="mb-4" />
         <div className="glass-panel p-8 md:p-12">
           <h1 className="text-2xl font-bold text-white mb-6">Politique de Confidentialité</h1>
 

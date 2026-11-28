@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { initialUrlAuthError } from '../lib/supabase';
 import { messageErreurAuth, messageErreurLien } from '../utils/authErrors';
 import PasswordToggle from '../components/PasswordToggle';
+import BackButton from '../components/BackButton';
 import { FullScreenLoader } from '../components/RouteGuards';
 
 /**
@@ -49,7 +50,11 @@ export default function ResetPassword() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
+      <div className="min-h-screen bg-space-900 px-4 py-6">
+        <div className="relative z-10 max-w-md mx-auto">
+          <BackButton to="/forgot-password" label="Retour" />
+        </div>
+        <div className="min-h-[70vh] flex items-center justify-center">
         <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-danger/20 rounded-lg mb-4">
             <span className="text-danger font-bold text-xl">!</span>
@@ -64,13 +69,18 @@ export default function ResetPassword() {
             Demander un nouveau lien
           </Link>
         </div>
+        </div>
       </div>
     );
   }
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
+      <div className="min-h-screen bg-space-900 px-4 py-6">
+        <div className="relative z-10 max-w-md mx-auto">
+          <BackButton to="/" label="Retour a l'accueil" />
+        </div>
+        <div className="min-h-[70vh] flex items-center justify-center">
         <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-success-600 rounded-lg mb-4">
             <span className="text-white font-bold text-xl">✓</span>
@@ -80,6 +90,7 @@ export default function ResetPassword() {
           <button type="button" onClick={() => navigate('/', { replace: true })} className="mt-6 btn-primary w-full">
             Continuer
           </button>
+        </div>
         </div>
       </div>
     );

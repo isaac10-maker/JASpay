@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 import { useAuth } from '../context/AuthContext';
 import { messageErreurAuth } from '../utils/authErrors';
 
@@ -57,8 +58,14 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-space-900 px-4 py-24">
-      <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
+    <div className="min-h-screen bg-space-900 px-4 py-6">
+      {/* Le bouton reste en haut a gauche : hors du conteneur centre, sinon il
+          serait place au milieu du panneau et non en tete de page. */}
+      <div className="relative z-10 max-w-md mx-auto">
+        <BackButton to="/login" label="Retour a la connexion" />
+      </div>
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="relative z-10 max-w-md w-full glass-panel p-8 md:p-12">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-marine-900 rounded-lg mb-4">
             <span className="text-white font-bold text-xl">J</span>
@@ -101,6 +108,7 @@ export default function ForgotPassword() {
             Connectez-vous
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

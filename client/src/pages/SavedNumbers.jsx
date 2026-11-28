@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import BackButton from '../components/BackButton';
 
 export default function SavedNumbers() {
   const { user } = useAuth();
@@ -324,6 +325,7 @@ export default function SavedNumbers() {
 
   return (
     <div className="min-h-screen">
+            <BackButton fallback="/" label="Retour" className="mb-4" />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>

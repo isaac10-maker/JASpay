@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { invokeEdge } from '../lib/edgeFunctions';
+import BackButton from '../components/BackButton';
 
 const STEPS = {
   BOOKMAKER: 'bookmaker',
@@ -256,6 +257,7 @@ export default function Deposit() {
 
   return (
         <div className="min-h-screen">
+            <BackButton fallback="/" label="Retour" className="mb-4" />
       <div className="responsive-container py-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
