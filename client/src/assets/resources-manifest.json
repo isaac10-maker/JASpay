@@ -4,7 +4,7 @@
   "description": "Manifeste des ressources graphiques — Refonte visuelle immersive",
   "generatedAt": "2026-11-16",
   "rules": [
-    "Aucune imitation de logo officiel (1xBet, MelBet, 1Win, Wallisbet, Mixx by Yas, Flooz)",
+    "Aucune imitation de logo officiel (1xBet, MelBet, 1Win, Mixx by Yas, Moov Money)",
     "Aucun faux billet officiel (FCFA/XOF avec effigie ou numéro de série)",
     "Aucun PNG présenté comme une animation réelle",
     "Aucune modification de logique métier, Supabase, Edge Functions, SQL, RLS"
@@ -67,18 +67,6 @@
             "Deposit.jsx"
           ],
           "note": "Détouré par luminance depuis 1win-logo-officiel-png-transparent-1.jpg (fond en dégradé). Logo blanc -> plaque sombre."
-        },
-        "wallisbet": {
-          "path": "client/src/assets/images/logos/bookmakers/wallisbet/",
-          "file": null,
-          "format": "PNG transparent",
-          "dimensions": "300x120",
-          "status": "logo_officiel_manquant_placeholder",
-          "source_requise": "site officiel Wallisbet ou dépôt de marques reconnu",
-          "pages": [
-            "Deposit.jsx"
-          ],
-          "note": "Aucune image fournie par l'utilisateur : « je n'en ai aucune idée »."
         }
       },
       "providers": {
@@ -413,8 +401,8 @@
       "FloatingElements monte (il existait mais n'etait rendu nulle part).",
       "PageShell cree : barre de navigation partagee (logo, liens actifs, menu mobile).",
       "Animations float.css et fade-in-up.css importees pour la premiere fois.",
-      "Logos : 1xBet, 1win et Mixx by Yas intégrés via components/BrandLogo.jsx (détourage + plaque adaptée à la couleur du logo). Melbet, Wallisbet et Flooz restent des placeholders documentés : les images fournies n'étaient pas des logos.",
-      "Logos v2 : wordmark JASpay officiel, Melbet, Moov Money (remplace Flooz), Mixx by Yas haute qualite. Zoom Ken Burns ajoute aux scenes de fond (coupe sous prefers-reduced-motion)."
+      "Logos v2 : wordmark JASpay officiel, Melbet, Moov Money (remplace Flooz), Mixx by Yas haute qualite. Zoom Ken Burns ajoute aux scenes de fond (coupe sous prefers-reduced-motion).",
+      "Wallisbet retire du lot (erreur de perimetre confirmee par l'utilisateur) : dossier, entree du manifeste et mentions textuelles supprimes."
     ]
   }
 }

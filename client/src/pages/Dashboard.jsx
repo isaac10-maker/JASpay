@@ -83,7 +83,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
             Gérez vos dépôts et retraits vers vos comptes bookmaker en toute sécurité.
-            1xBet, MelBet, 1Win et Wallisbet — Mobile Money Mixx by Yas ou Moov Money.
+            1xBet, MelBet et 1Win — Mobile Money Mixx by Yas ou Moov Money.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
@@ -160,7 +160,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-xl font-bold text-white mb-3">Alimenter votre compte</h3>
             <p className="text-gray-400 mb-6">
-              Déposez sur 1xBet, MelBet, 1Win ou Wallisbet via Mobile Money.
+              Déposez sur 1xBet, MelBet ou 1Win via Mobile Money.
             </p>
             <button className="btn-primary w-full">
               Déposer maintenant
@@ -232,7 +232,7 @@ export default function Dashboard() {
               </div>
               <h3 className="text-lg font-bold text-white mb-3">Choisissez votre bookmaker</h3>
               <p className="text-gray-400 text-sm">
-                1xBet, MelBet, 1Win ou Wallisbet — sélectionnez votre plateforme de paris.
+                1xBet, MelBet ou 1Win — sélectionnez votre plateforme de paris.
               </p>
             </div>
 

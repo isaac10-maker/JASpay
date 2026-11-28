@@ -7,11 +7,9 @@
  *
  * Les images sont chargées via `import.meta.glob` et non par des `import`
  * nominatifs : un logo absent du dossier n'empêche donc pas le build. C'est le
- * cas de Melbet, Wallisbet et Flooz — leurs images fournies n'étaient pas des
- * logos exploitables (façade de boutique, texte noir sur blanc, publicité), et
- * la règle du plan ressources interdit d'approximer une marque officielle.
- * Pour ces marques le composant renvoie `null` et l'interface garde son
- * affichage texte.
+ * cas de Flooz : aucune image officielle fournie, et la règle du plan
+ * ressources interdit d'approximer une marque. Pour ces marques le composant
+ * renvoie `null` et l'interface garde son affichage texte.
  */
 const LOGOS = import.meta.glob('../assets/images/logos/**/*.png', {
   eager: true,
@@ -27,7 +25,6 @@ const BRANDS = [
   { match: ['1xbet', '1x bet'], path: 'bookmakers/1xbet/1xbet.png', alt: '1xBet', plate: 'light' },
   { match: ['melbet', 'mel bet'], path: 'bookmakers/melbet/melbet.png', alt: 'Melbet', plate: 'dark' },
   { match: ['1win', '1 win'], path: 'bookmakers/1win/1win.png', alt: '1win', plate: 'dark' },
-  { match: ['wallis'], path: 'bookmakers/wallisbet/wallisbet.png', alt: 'Wallisbet', plate: 'light' },
   { match: ['mixx', 'yas'], path: 'providers/mixx-by-yas/mixx-by-yas.png', alt: 'Mixx by Yas', plate: 'dark' },
   { match: ['moov'], path: 'providers/moov-money/moov-money.png', alt: 'Moov Money', plate: 'light' },
   // Flooz reste sans logo : aucune image officielle n'a été fournie.

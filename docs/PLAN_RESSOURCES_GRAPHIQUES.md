@@ -13,7 +13,7 @@ Le dépôt ne contient actuellement **aucun fichier image** (zéro PNG, JPG, SVG
 
 ### Règles à respecter (non négociables)
 
-1. **Aucune imitation de logo officiel** : les logos 1xBet, MelBet, 1Win et Wallisbet doivent être récupérés dans leurs versions officielles depuis des sources fiables, ou laissés comme emplacements temporaires clairement identifiés (`[PLACEHOLDER]`). Jamais de dessin approximatif présenté comme un logo officiel.
+1. **Aucune imitation de logo officiel** : les logos 1xBet, MelBet et 1Win doivent être récupérés dans leurs versions officielles depuis des sources fiables, ou laissés comme emplacements temporaires clairement identifiés (`[PLACEHOLDER]`). Jamais de dessin approximatif présenté comme un logo officiel.
 2. **Scènes sportives de qualité** : football, basketball, tennis, golf doivent être de véritables visuels originaux, pas de simples rectangles ou cercles SVG.
 3. **Objets indépendants** : ballons, trophées, jetons, billets décoratifs doivent être des ressources graphiques indépendantes, idéalement PNG transparents.
 4. **Animations séparées des images** : CSS, SVG animé ou séquences adaptées. Un PNG statique ne doit jamais être présenté comme une animation réelle.
@@ -35,7 +35,6 @@ client/src/assets/
 │   │   │   ├── 1xbet.png                  # [OFFICIEL] ou [PLACEHOLDER]
 │   │   │   ├── melbet.png                 # [OFFICIEL] ou [PLACEHOLDER]
 │   │   │   ├── 1win.png                   # [OFFICIEL] ou [PLACEHOLDER]
-│   │   │   └── wallisbet.png              # [OFFICIEL] ou [PLACEHOLDER]
 │   │   └── providers/
 │   │       ├── mixx-by-yas.png            # Logo opérateur Mobile Money
 │   │       └── flooz.png                  # Logo opérateur Mobile Money
@@ -86,7 +85,6 @@ client/src/assets/
 | `images/logos/bookmakers/1xbet.png` | [OFFICIEL] ou [PLACEHOLDER] | PNG transparent | 300 × 120 px (logo), 120 × 120 px (icône) | Site officiel 1xBet ou Wikimedia Commons (version officielle) | Deposit.jsx (sélecteur bookmaker), Dashboard.jsx (étape 1 du dépôt) |
 | `images/logos/bookmakers/melbet.png` | [OFFICIEL] ou [PLACEHOLDER] | PNG transparent | 300 × 120 px | Site officiel MelBet | Deposit.jsx |
 | `images/logos/bookmakers/1win.png` | [OFFICIEL] ou [PLACEHOLDER] | PNG transparent | 300 × 120 px | Site officiel 1Win | Deposit.jsx |
-| `images/logos/bookmakers/wallisbet.png` | [OFFICIEL] ou [PLACEHOLDER] | PNG transparent | 300 × 120 px | Site officiel Wallisbet | Deposit.jsx |
 
 **Règle :** si un logo officiel ne peut pas être récupéré légalement, le fichier est remplacé par un SVG texte clairement marqué `[PLACEHOLDER - LOGO OFFICIEL MANQUANT - NOM DU BOOKMAKER]`. Aucun dessin imitant le logo n'est accepté.
 
@@ -193,7 +191,8 @@ Toutes les animations sont réalisées en CSS et/ou SVG animé. Aucun PNG n'est 
 - [ ] Éléments financiers génériques
 
 ### Étape 4 — Récupération des logos officiels (ou placeholders)
-- [ ] Logos 1xBet, MelBet, 1Win, Wallisbet (sources officielles ou placeholders identifiés)
+- [x] Logos 1xBet, MelBet, 1Win (fournis et intégrés)
+- [ ] Aucun logo Wallisbet : hors périmètre (confirmé par l'utilisateur)
 - [ ] Logos opérateurs Mobile Money (Mixx by Yas, Flooz)
 
 ### Étape 5 — Intégration dans les composants (sans toucher à la logique métier)
