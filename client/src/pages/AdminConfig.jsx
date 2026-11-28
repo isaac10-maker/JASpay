@@ -166,14 +166,14 @@ export default function AdminConfig() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <h2 className="text-lg font-bold text-white mb-4">Bookmakers configurés</h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-1 px-1">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white/5">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Nom</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">ID technique</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Ordre</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Nom</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">ID technique</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Statut</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Ordre</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -182,9 +182,9 @@ export default function AdminConfig() {
                   ) : (
                     bookmakers.map((b) => (
                       <tr key={b.id} className="border-b border-white/10">
-                        <td className="px-4 py-3 text-sm text-gray-200">{b.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300 font-mono">{b.technical_id}</td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-200 break-words">{b.name}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-300 font-mono break-all">{b.technical_id}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm break-words">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             b.is_active ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
                             'bg-red-500/15 text-red-400 border border-red-500/30'
@@ -192,7 +192,7 @@ export default function AdminConfig() {
                             {b.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{b.display_order}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-300 break-words">{b.display_order}</td>
                       </tr>
                     ))
                   )}
@@ -257,15 +257,15 @@ export default function AdminConfig() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <h2 className="text-lg font-bold text-white mb-4">Opérateurs de paiement</h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-1 px-1">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white/5">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Nom</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">ID technique</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Dépôt</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Retrait</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Statut</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Nom</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">ID technique</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Dépôt</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Retrait</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Statut</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -274,9 +274,9 @@ export default function AdminConfig() {
                   ) : (
                     providers.map((p) => (
                       <tr key={p.id} className="border-b border-white/10">
-                        <td className="px-4 py-3 text-sm text-gray-200">{p.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300 font-mono">{p.technical_id}</td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-200 break-words">{p.name}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-300 font-mono break-all">{p.technical_id}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm break-words">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.supports_deposit ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
                             'bg-red-500/15 text-red-400 border border-red-500/30'
@@ -284,7 +284,7 @@ export default function AdminConfig() {
                             {p.supports_deposit ? 'Oui' : 'Non'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-3 sm:px-4 py-3 text-sm break-words">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.supports_withdrawal ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
                             'bg-red-500/15 text-red-400 border border-red-500/30'
@@ -292,7 +292,7 @@ export default function AdminConfig() {
                             {p.supports_withdrawal ? 'Oui' : 'Non'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-3 sm:px-4 py-3 text-sm break-words">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             p.is_active ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
                             'bg-red-500/15 text-red-400 border border-red-500/30'
@@ -373,13 +373,13 @@ export default function AdminConfig() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <h2 className="text-lg font-bold text-white mb-4">Paramètres de la plateforme</h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-1 px-1">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white/5">
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Clé</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Valeur</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20">Public</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Clé</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Valeur</th>
+                    <th className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-300 border-b border-white/20 break-words">Public</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -388,9 +388,9 @@ export default function AdminConfig() {
                   ) : (
                     settings.map((s) => (
                       <tr key={s.id} className="border-b border-white/10">
-                        <td className="px-4 py-3 text-sm text-gray-200 font-mono">{s.setting_key}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{JSON.stringify(s.setting_value)}</td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-200 font-mono break-all">{s.setting_key}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm text-gray-300 break-words">{JSON.stringify(s.setting_value)}</td>
+                        <td className="px-3 sm:px-4 py-3 text-sm break-words">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                             s.is_public ? 'bg-success-600/15 text-success-500 border border-success-600/30' :
                             'bg-white/5 text-gray-300 border border-white/10'

@@ -89,9 +89,13 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+      {/* Barre de navigation de la page.
+          `fixed` + racine `overflow-hidden` = la barre se détachait du flux et
+          restait collée en haut de la fenêtre, par-dessus le contenu. `sticky`
+          la garde dans le flux : elle occupe sa hauteur (64 px) et le contenu
+          commence dessous, sans chevauchement. */}
+      <nav className="sticky top-0 z-50">
+        <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 shrink-0">
@@ -161,7 +165,7 @@ export default function Dashboard() {
       </nav>
 
       {/* Hero Section */}
-      <header className="relative z-10 pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <header className="relative z-10 pt-10 sm:pt-14 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-marine-900 rounded-2xl mb-6 border border-white/20 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
             <span className="text-white font-bold text-2xl">J</span>

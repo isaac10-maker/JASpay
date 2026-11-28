@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/RouteGuards';
-import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -30,8 +29,10 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen">
           <Starfield />
-          <Navbar />
-
+          {/* La Navbar globale vivait ici et faisait 64 px de haut (fixed top-0). Aucun
+              wrapper ne compensait cette hauteur, donc le haut de chaque page passait
+              sous la barre. Elle est retirée : chaque section gère désormais sa propre
+              barre (Navbar dans les pages publiques, barre admin dans AdminLayout). */}
           <Routes>
             {/* Visiteurs uniquement : un utilisateur connecté est renvoyé à l'accueil */}
             <Route element={<PublicOnlyRoute />}>
