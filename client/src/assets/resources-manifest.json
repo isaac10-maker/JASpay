@@ -37,44 +37,48 @@
           "file": "1xbet.png",
           "format": "PNG transparent",
           "dimensions": "300x120",
-          "status": "logo_officiel_manquant_placeholder",
+          "status": "integre",
           "source_requise": "site officiel 1xBet ou dépôt de marques reconnu",
           "pages": [
             "Deposit.jsx"
-          ]
+          ],
+          "note": "Détouré depuis image-search/1xbet-logo-officiel-png-transparent-1.png (fond blanc rendu transparent). Plaque claire."
         },
         "melbet": {
           "path": "client/src/assets/images/logos/bookmakers/melbet/",
-          "file": "melbet.png",
+          "file": null,
           "format": "PNG transparent",
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel MelBet ou dépôt de marques reconnu",
           "pages": [
             "Deposit.jsx"
-          ]
+          ],
+          "note": "L'image fournie (melbet-logo-officiel-png-transparent-1.jpg) est une photographie de façade de boutique, pas un logo. Non intégrée, aucun logo fabriqué."
         },
         "1win": {
           "path": "client/src/assets/images/logos/bookmakers/1win/",
           "file": "1win.png",
           "format": "PNG transparent",
           "dimensions": "300x120",
-          "status": "logo_officiel_manquant_placeholder",
+          "status": "integre",
           "source_requise": "site officiel 1Win ou dépôt de marques reconnu",
           "pages": [
             "Deposit.jsx"
-          ]
+          ],
+          "note": "Détouré par luminance depuis 1win-logo-officiel-png-transparent-1.jpg (fond en dégradé). Logo blanc -> plaque sombre."
         },
         "wallisbet": {
           "path": "client/src/assets/images/logos/bookmakers/wallisbet/",
-          "file": "wallisbet.png",
+          "file": null,
           "format": "PNG transparent",
           "dimensions": "300x120",
           "status": "logo_officiel_manquant_placeholder",
           "source_requise": "site officiel Wallisbet ou dépôt de marques reconnu",
           "pages": [
             "Deposit.jsx"
-          ]
+          ],
+          "note": "L'image fournie est le mot « wallis » en texte noir sur fond blanc, sans « bet ». Non intégrée."
         }
       },
       "providers": {
@@ -90,15 +94,14 @@
           ]
         },
         "flooz": {
-          "path": "client/src/assets/images/logos/providers/flooz/",
           "file": "flooz.png",
-          "format": "PNG transparent",
-          "dimensions": "200x80",
           "status": "logo_officiel_manquant_placeholder",
-          "source_requise": "site officiel Flooz",
-          "pages": [
-            "Deposit.jsx"
-          ]
+          "note": "L'image fournie est une publicité avec une personne, pas un logo détouré. Non intégrée."
+        },
+        "mixx_by_yas": {
+          "file": "mixx-by-yas.png",
+          "status": "integre",
+          "note": "Détouré depuis mixx-by-yas-logo-mobile-money-png-1.webp (fond blanc). Logo jaune -> plaque sombre."
         }
       },
       "embleme": {
@@ -394,7 +397,8 @@
       "BackgroundRotation rebranche sur les 4 scenes ; ses 4 SVG abstraits inline sont retires.",
       "FloatingElements monte (il existait mais n'etait rendu nulle part).",
       "PageShell cree : barre de navigation partagee (logo, liens actifs, menu mobile).",
-      "Animations float.css et fade-in-up.css importees pour la premiere fois."
+      "Animations float.css et fade-in-up.css importees pour la premiere fois.",
+      "Logos : 1xBet, 1win et Mixx by Yas intégrés via components/BrandLogo.jsx (détourage + plaque adaptée à la couleur du logo). Melbet, Wallisbet et Flooz restent des placeholders documentés : les images fournies n'étaient pas des logos."
     ]
   }
 }

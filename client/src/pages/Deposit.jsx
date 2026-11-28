@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { invokeEdge } from '../lib/edgeFunctions';
 import BackButton from '../components/BackButton';
 import PageShell from '../components/PageShell';
+import BrandLogo from '../components/BrandLogo';
 
 const STEPS = {
   BOOKMAKER: 'bookmaker',
@@ -311,7 +312,8 @@ export default function Deposit() {
                       onChange={handleBookmakerChange}
                       className="w-4 h-4 text-electric-500"
                     />
-                    <div>
+                    <BrandLogo name={b.name} className="h-7 w-auto max-w-[80px]" />
+                    <div className="min-w-0">
                       <div className="font-medium text-white">{b.name}</div>
                       <div className="text-xs text-gray-400">{b.technical_id}</div>
                     </div>
@@ -391,7 +393,8 @@ export default function Deposit() {
                       onChange={(e) => setForm((prev) => ({ ...prev, payment_provider_id: e.target.value }))}
                       className="w-4 h-4 text-electric-500"
                     />
-                    <div>
+                    <BrandLogo name={m.provider.name} className="h-7 w-auto max-w-[80px]" />
+                    <div className="min-w-0">
                       <div className="font-medium text-white">{m.provider.name}</div>
                       {m.min_amount > 0 || m.max_amount > 0 ? (
                         <div className="text-xs text-gray-400">

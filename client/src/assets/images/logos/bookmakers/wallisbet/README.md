@@ -1,16 +1,21 @@
-# Wallisbet — Logo bookmaker
+# wallisbet — Logo officiel manquant
 
-## Statut : EMPLACEMENT TEMPORAIRE — LOGO OFFICIEL MANQUANT
+## Statut : PLACEHOLDER — IMAGE NON FOURNIE
 
-Ce répertoire est réservé au logo officiel de Wallisbet.
+Le fichier `wallisbet.png` attendu ici **n'a pas été fourni**. Le fichier trouvé dans
+`image-search/` n'est pas un logo exploitable :
 
-**Règle absolue :** aucun dessin, aucune imitation, aucun faux logo ne doit être placé ici. Le logo doit être récupéré dans sa version officielle depuis une source fiable (site officiel de Wallisbet ou dépôt de marques reconnu), au format PNG transparent.
 
-### Fichier attendu
-- `wallisbet.png` — Logo officiel Wallisbet, PNG transparent, dimensions recommandées : 300 × 120 px
+- \`wallisbet-logo-officiel-png-transparent-1.gif\` : mot « wallis » en texte noir sur fond blanc, sans le « bet », qualité insuffisante.
 
-### Pages affectées
-- `client/src/pages/Deposit.jsx` — sélecteur de bookmaker (étape 1)
 
-### Prochaine étape
-Une fois le logo officiel récupéré, le placer ici sous le nom `wallisbet.png`. Ce fichier README sera alors supprimé.
+Aucun logo n'a donc été fabriqué ni approximé : `BrandLogo.jsx` renvoie `null`
+pour cette marque et l'interface retombe sur le nom en texte.
+
+## Ce qui est attendu
+
+- `wallisbet.png` — logo officiel, PNG transparent, largeur ≥ 300 px.
+
+## Fourni et intégré
+
+- `1xbet.png` (détouré), `1win.png` (détouré), `mixx-by-yas.png` (détouré).

@@ -1,16 +1,21 @@
-# Flooz — Logo opérateur Mobile Money
+# flooz — Logo officiel manquant
 
-## Statut : EMPLACEMENT TEMPORAIRE — LOGO OFFICIEL MANQUANT
+## Statut : PLACEHOLDER — IMAGE NON FOURNIE
 
-Ce répertoire est réservé au logo officiel de Flooz.
+Le fichier `flooz.png` attendu ici **n'a pas été fourni**. Le fichier trouvé dans
+`image-search/` n'est pas un logo exploitable :
 
-**Règle absolue :** aucun dessin, aucune imitation, aucun faux logo ne doit être placé ici. Le logo doit être récupéré dans sa version officielle depuis une source fiable, au format PNG transparent.
 
-### Fichier attendu
-- `flooz.png` — Logo officiel Flooz, PNG transparent, dimensions recommandées : 200 × 80 px
 
-### Pages affectées
-- `client/src/pages/Deposit.jsx` — sélecteur d'opérateur Mobile Money (étape 4)
+- \`flooz-logo-mobile-money-png-1.png\` : capture d une publicité avec une personne, pas un logo détouré.
 
-### Prochaine étape
-Une fois le logo officiel récupéré, le placer ici sous le nom `flooz.png`. Ce fichier README sera alors supprimé.
+Aucun logo n'a donc été fabriqué ni approximé : `BrandLogo.jsx` renvoie `null`
+pour cette marque et l'interface retombe sur le nom en texte.
+
+## Ce qui est attendu
+
+- `flooz.png` — logo officiel, PNG transparent, largeur ≥ 300 px.
+
+## Fourni et intégré
+
+- `1xbet.png` (détouré), `1win.png` (détouré), `mixx-by-yas.png` (détouré).
