@@ -9,7 +9,15 @@ const TYPE_LABELS = {
   warning: 'Avertissement',
   error: 'Erreur',
   success: 'Succès',
+  marquee: 'Bandeau défilant',
 };
+
+// 1 = lundi … 7 = dimanche, comme la colonne `display_days` en base.
+const JOURS = [
+  { id: 1, court: 'Lun' }, { id: 2, court: 'Mar' }, { id: 3, court: 'Mer' },
+  { id: 4, court: 'Jeu' }, { id: 5, court: 'Ven' }, { id: 6, court: 'Sam' },
+  { id: 7, court: 'Dim' },
+];
 
 export default function AdminAnnouncements() {
   const navigate = useNavigate();
@@ -26,6 +34,7 @@ export default function AdminAnnouncements() {
     is_active: true,
     starts_at: '',
     ends_at: '',
+    display_days: [],
   });
 
   const getToken = async () => {
@@ -73,6 +82,7 @@ export default function AdminAnnouncements() {
       is_active: true,
       starts_at: '',
       ends_at: '',
+      display_days: [],
     });
   };
 
@@ -88,6 +98,7 @@ export default function AdminAnnouncements() {
         is_active: form.is_active,
         starts_at: form.starts_at || null,
         ends_at: form.ends_at || null,
+        display_days: form.display_days.length ? form.display_days : null,
       };
 
       const { data, error: err } = isEditing && editingId
@@ -124,6 +135,7 @@ export default function AdminAnnouncements() {
       is_active: announcement.is_active,
       starts_at: announcement.starts_at ? announcement.starts_at.slice(0, 16) : '',
       ends_at: announcement.ends_at ? announcement.ends_at.slice(0, 16) : '',
+      display_days: announcement.display_days || [],
     });
   };
 
@@ -236,6 +248,45 @@ export default function AdminAnnouncements() {
               ))}
             </select>
           </div>
+          {form.type === 'marquee' && (
+            <div className="space-y-2 p-3 rounded-lg border border-electric-500/25 bg-electric-500/5">
+              <label className="block text-sm font-medium text-gray-200">
+                Jours de diffusion
+              </label>
+              <p className="text-xs text-gray-400">
+                Aucun jour sélectionné = le message passe tous les jours. Sinon il
+                n'apparaît que les jours cochés, et change automatiquement à minuit.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {JOURS.map((j) => {
+                  const actif = form.display_days.includes(j.id);
+                  return (
+                    <button
+                      key={j.id}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          display_days: actif
+                            ? form.display_days.filter((d) => d !== j.id)
+                            : [...form.display_days, j.id].sort((a, b) => a - b),
+                        })
+                      }
+                      aria-pressed={actif}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        actif
+                          ? 'bg-electric-500 text-white'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {j.court}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-200">Début</label>

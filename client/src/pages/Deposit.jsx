@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 import { invokeEdge } from '../lib/edgeFunctions';
 import BackButton from '../components/BackButton';
 import PageShell from '../components/PageShell';
 import BrandLogo from '../components/BrandLogo';
+import PaymentInstruction from '../components/PaymentInstruction';
+import ProofUpload from '../components/ProofUpload';
 
 const STEPS = {
   BOOKMAKER: 'bookmaker',
@@ -28,6 +31,7 @@ const STEP_ORDER = [
 
 export default function Deposit() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [step, setStep] = useState(STEPS.BOOKMAKER);
   const [bookmakers, setBookmakers] = useState([]);
@@ -44,7 +48,14 @@ export default function Deposit() {
     payment_provider_id: '',
     phone_number: '',
     transaction_reference: '',
+    payment_proof_path: '',
   });
+
+  // Le moyen de paiement selectionne determine si une capture de recu est exigee.
+  const moyenCourant = paymentMethods.find(
+    (m) => m.provider_id === form.payment_provider_id
+  );
+  const preuveRequise = Boolean(moyenCourant?.requires_receipt);
 
   useEffect(() => {
     loadBookmakers();
@@ -158,6 +169,12 @@ export default function Deposit() {
       setError('Veuillez saisir votre numéro de téléphone.');
       return;
     }
+    if (preuveRequise && !form.payment_proof_path) {
+      setError(
+        "Cet opérateur exige la capture du reçu de dépôt : sans elle, la transaction peut être annulée."
+      );
+      return;
+    }
 
     setLoading(true);
 
@@ -189,6 +206,7 @@ export default function Deposit() {
           currency: 'XOF',
           payment_provider_id: form.payment_provider_id,
           phone_number: form.phone_number,
+          payment_proof_path: form.payment_proof_path || null,
         }
       );
 
@@ -405,6 +423,11 @@ export default function Deposit() {
                   </label>
                 ))}
               </div>
+
+              <PaymentInstruction
+                providerId={form.payment_provider_id}
+                direction="deposit"
+              />
             </>
           )}
 
@@ -461,6 +484,16 @@ export default function Deposit() {
                   <span className="font-medium text-white">{form.phone_number}</span>
                 </div>
               </div>
+
+              {preuveRequise && (
+                <ProofUpload
+                  userId={user?.id}
+                  value={form.payment_proof_path}
+                  onChange={(chemin) =>
+                    setForm((prev) => ({ ...prev, payment_proof_path: chemin }))
+                  }
+                />
+              )}
             </>
           )}
 

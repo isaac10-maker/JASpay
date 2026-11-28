@@ -16,6 +16,10 @@
 // Vérifie : JWT, rôle (super_admin/admin/moderator selon route),
 // compte actif, session admin (revoked_at, expires_at).
 //
+// AJOUT : `display_days` (jours de diffusion du bandeau défilant).
+//   - liste d'entiers 1..7, 1 = lundi, 7 = dimanche
+//   - absent ou liste vide = diffusion tous les jours (NULL)
+//   - toute valeur hors bornes est ignorée
 
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -32,6 +36,18 @@ function extractApiPath(pathname) {
   const idx = p.indexOf('/api/');
   if (idx >= 0) p = p.slice(idx);
   return p;
+}
+
+// Jours de diffusion du bandeau : entiers 1..7 (1 = lundi). Toute valeur hors
+// bornes est ignoree ; liste vide ou absente = diffusion tous les jours (null).
+function normalizeDisplayDays(value) {
+  if (!Array.isArray(value)) return null;
+  const jours = [...new Set(
+    value
+      .map((j) => parseInt(j, 10))
+      .filter((j) => Number.isInteger(j) && j >= 1 && j <= 7)
+  )].sort((a, b) => a - b);
+  return jours.length ? jours : null;
 }
 
 async function handler(req) {
@@ -404,7 +420,7 @@ async function handler(req) {
       }
 
       const body = await req.json();
-      const { title, content, type, is_active, starts_at, ends_at } = body;
+      const { title, content, type, is_active, starts_at, ends_at, display_days } = body;
 
       if (!title || !content) {
         return new Response(
@@ -422,6 +438,9 @@ async function handler(req) {
           is_active: is_active !== false,
           starts_at,
           ends_at,
+          // Jours de diffusion du bandeau (1=lundi .. 7=dimanche).
+          // null = tous les jours.
+          display_days: normalizeDisplayDays(display_days),
           created_by: userId,
         })
         .select()
@@ -455,7 +474,7 @@ async function handler(req) {
 
       const announcementId = announceMatch[1];
       const body = await req.json();
-      const { title, content, type, is_active, starts_at, ends_at } = body;
+      const { title, content, type, is_active, starts_at, ends_at, display_days } = body;
 
       const { data, error } = await supabaseAdmin
         .from('announcements')
@@ -466,6 +485,7 @@ async function handler(req) {
           is_active,
           starts_at,
           ends_at,
+          display_days: normalizeDisplayDays(display_days),
           updated_at: new Date().toISOString(),
         })
         .eq('id', announcementId)

@@ -14,6 +14,7 @@
 
 import { useState, useEffect } from 'react';
 
+import LeagueStrip from './LeagueStrip';
 import sceneFootball from '../assets/images/scenes/football/scene-football.webp';
 import sceneBasketball from '../assets/images/scenes/basketball/scene-basketball.webp';
 import sceneTennis from '../assets/images/scenes/tennis/scene-tennis.webp';
@@ -82,6 +83,17 @@ export default function BackgroundRotation() {
 
       {/* Voile dégradé : garantit la lisibilité du texte au-dessus */}
       <div className="absolute inset-0 bg-gradient-to-b from-space-900/80 via-space-900/70 to-space-900" />
+
+      {/* Championnats en pied de visuel, comme sur la référence 1xBet.
+          Très effacés et dégradés vers le haut : ils font partie de
+          l'arrière-plan, ils ne doivent pas gêner la lecture des cartes qui
+          passent au-dessus. */}
+      <div
+        className="absolute inset-x-0 bottom-4 sm:bottom-8 flex justify-center"
+        style={{ WebkitMaskImage: 'linear-gradient(to top, black 55%, transparent)', maskImage: 'linear-gradient(to top, black 55%, transparent)' }}
+      >
+        <LeagueStrip />
+      </div>
 
       {/* Motif géométrique discret */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiLz48L3N2Zz4=')] opacity-40 pointer-events-none" />

@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import jaspayWordmark from '../assets/images/logos/jaspay-wordmark.png';
 import BackgroundRotation from './BackgroundRotation';
+import MenuMarquee from './MenuMarquee';
 import FloatingElements from './FloatingElements';
 
 /**
@@ -17,7 +18,8 @@ import FloatingElements from './FloatingElements';
  *   - logo officiel JASpay (asset `jaspay-logo.png`) ;
  *   - liens de navigation avec état actif (`NavLink`) ;
  *   - bloc utilisateur + déconnexion ;
- *   - menu mobile (aucun menu n'existait sous 768 px auparavant).
+ *   - menu mobile (aucun menu n'existait sous 768 px auparavant) ;
+ *   - bandeau défilant (MenuMarquee) collé sous la barre.
  *
  * Le contenu de la page est passé en `children` et rendu sous la barre.
  * `sticky` (et non `fixed`) : la barre occupe sa hauteur dans le flux, donc
@@ -43,7 +45,7 @@ export default function PageShell({ children, maxWidth = 'max-w-7xl' }) {
       // sont en `fixed z-[-1]` ; un `bg-space-900` sur ce conteneur les masquerait
       // entièrement. La couleur de repli est portée par <body> dans index.css.
       className="min-h-screen text-white relative overflow-x-clip"
-      style={{ '--back-top': '5rem' }}
+      style={{ '--back-top': '6.5rem' }}
     >
       {/* Fonds communs : scènes sportives en rotation (5 min) + objets flottants.
           Montés ici plutôt que dans chaque page, pour que toute l'application
@@ -53,6 +55,8 @@ export default function PageShell({ children, maxWidth = 'max-w-7xl' }) {
       <FloatingElements />
 
       <nav className="sticky top-0 z-50">
+        {/* Bandeau défilant : messages définis par l'admin, sinon messages du jour */}
+        <MenuMarquee />
         <div className="bg-space-900/80 backdrop-blur-md border-b border-white/10">
           <div className={`${maxWidth} mx-auto px-4 sm:px-6 lg:px-8`}>
             <div className="flex items-center justify-between h-16 gap-3">

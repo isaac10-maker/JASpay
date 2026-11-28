@@ -18,6 +18,10 @@
   /* Couleur de repli : les calques de fond (étoiles, scènes) sont en z-[-1],
      donc le conteneur racine de chaque page ne porte volontairement aucun
      fond opaque. Sans ceci, une page sans calque serait blanche. */
+  html {
+    background-color: #090a0f;
+  }
+
   body {
     background-color: #090a0f;
   }
@@ -559,5 +563,32 @@ a:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .scene-kenburns {
     animation: none !important;
+  }
+}
+
+/* ============================================================================
+   Bandeau défilant (MenuMarquee).
+   Défilement continu : la piste contient deux copies des messages, on translate
+   de -50 % pour un raccord invisible. Durée proportionnelle au nombre de
+   messages pour garder une vitesse lisible.
+   ============================================================================ */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none !important;
+    width: auto !important;
+    flex-wrap: wrap;
   }
 }

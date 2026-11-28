@@ -12,6 +12,7 @@ const STEPS = {
   AMOUNT: 'amount',
   OPERATOR: 'operator',
   PHONE: 'phone',
+  RETRAIT_ESPECES: 'retrait_especes',
   SUMMARY: 'summary',
   CONFIRMATION: 'confirmation',
 };
@@ -22,6 +23,7 @@ const STEP_ORDER = [
   STEPS.AMOUNT,
   STEPS.OPERATOR,
   STEPS.PHONE,
+  STEPS.RETRAIT_ESPECES,
   STEPS.SUMMARY,
   STEPS.CONFIRMATION,
 ];
@@ -44,6 +46,11 @@ export default function Withdraw() {
     payment_provider_id: '',
     phone_number: '',
     transaction_reference: '',
+    // Retrait en espèces : l'agent ne peut traiter que les demandes de sa zone,
+    // d'où la ville et le point de retrait. Le code vient du bookmaker.
+    withdrawal_city: '',
+    withdrawal_point: '',
+    bookmaker_otp_code: '',
   });
 
   useEffect(() => {
@@ -158,6 +165,20 @@ export default function Withdraw() {
       setError('Veuillez saisir votre numéro de réception.');
       return;
     }
+    if (!form.withdrawal_city) {
+      setError('Veuillez indiquer la localité de retrait.');
+      return;
+    }
+    if (!form.withdrawal_point) {
+      setError('Veuillez indiquer le point de retrait choisi sur le bookmaker.');
+      return;
+    }
+    if (!form.bookmaker_otp_code) {
+      setError(
+        "Veuillez saisir le code OTP reçu du bookmaker après votre demande de retrait en espèces."
+      );
+      return;
+    }
 
     setLoading(true);
 
@@ -189,6 +210,9 @@ export default function Withdraw() {
           currency: 'XOF',
           payment_provider_id: form.payment_provider_id,
           phone_number: form.phone_number,
+          withdrawal_city: form.withdrawal_city,
+          withdrawal_point: form.withdrawal_point,
+          bookmaker_otp_code: form.bookmaker_otp_code,
         }
       );
 
@@ -421,6 +445,68 @@ export default function Withdraw() {
           )}
 
           {/* Étape 6 : Récapitulatif */}
+          {step === STEPS.RETRAIT_ESPECES && (
+            <>
+              <h2 className="text-lg font-bold text-white mb-2">5. Retrait en espèces</h2>
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 mb-5">
+                <p className="text-sm text-amber-200 font-medium mb-2">À faire d'abord, sur votre compte bookmaker</p>
+                <ol className="text-xs text-amber-100/80 space-y-1 list-decimal list-inside">
+                  <li>Ouvrez la caisse du bookmaker et choisissez le retrait <strong>en espèces</strong>.</li>
+                  <li>Saisissez le montant, puis la <strong>ville</strong> et le <strong>point de retrait</strong>.</li>
+                  <li>Validez : vous recevez un <strong>code OTP</strong> par SMS.</li>
+                </ol>
+                <p className="text-xs text-amber-100/70 mt-2">
+                  Un agent ne peut traiter que les demandes de sa zone : indiquez exactement la
+                  localité et le point choisis sur le bookmaker.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="label-text">Localité du retrait *</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Ex : Bobo-Dioulasso"
+                    value={form.withdrawal_city}
+                    onChange={(e) => setForm((prev) => ({ ...prev, withdrawal_city: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="label-text">Point de retrait *</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Nom du point choisi sur le bookmaker"
+                    value={form.withdrawal_point}
+                    onChange={(e) => setForm((prev) => ({ ...prev, withdrawal_point: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="label-text">Code OTP du bookmaker *</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="input-field font-mono tracking-widest"
+                    placeholder="Code reçu par SMS"
+                    value={form.bookmaker_otp_code}
+                    onChange={(e) => setForm((prev) => ({ ...prev, bookmaker_otp_code: e.target.value.trim() }))}
+                    required
+                  />
+                  <p className="text-xs text-gray-400">
+                    C'est ce code que l'agent utilisera pour décrocher l'argent. Ne le communiquez
+                    qu'à l'agent du point de retrait.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
           {step === STEPS.SUMMARY && (
             <>
               <h2 className="text-lg font-bold text-white mb-4">6. Récapitulatif</h2>
@@ -444,6 +530,20 @@ export default function Withdraw() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">Numéro de réception</span>
                   <span className="font-medium text-white">{form.phone_number}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Localité de retrait</span>
+                  <span className="font-medium text-white">{form.withdrawal_city}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Point de retrait</span>
+                  <span className="font-medium text-white">{form.withdrawal_point}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Code OTP</span>
+                  <span className="font-medium text-white font-mono tracking-widest">
+                    {'•'.repeat(Math.max(String(form.bookmaker_otp_code).length, 4))}
+                  </span>
                 </div>
               </div>
             </>

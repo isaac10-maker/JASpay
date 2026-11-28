@@ -312,6 +312,13 @@ async function handler(req) {
         currency,
         payment_provider_id,
         phone_number,
+        // Retrait en especes : l'agent ne traite que sa zone, et le code OTP
+        // vient du bookmaker. Preuve de paiement : capture du recu pour les
+        // depots vers un numero marchand sans prelevement automatique.
+        withdrawal_city,
+        withdrawal_point,
+        bookmaker_otp_code,
+        payment_proof_path,
       } = body || {};
 
       // 1. Validation des champs requis
@@ -331,6 +338,35 @@ async function handler(req) {
       // 2. Validation du type
       if (!['deposit', 'withdrawal'].includes(transaction_type)) {
         return jsonResponse({ error: 'Type de transaction invalide' }, 400, cors);
+      }
+
+      // 2ter. Un retrait se fait en especes chez l'agent : la localite et le
+      // point de retrait sont obligatoires (un agent ne traite que sa zone),
+      // et le code OTP du bookmaker est la preuve que la demande a bien ete
+      // initiee par le titulaire du compte.
+      const clean = (v) => (typeof v === 'string' ? v.trim() : '');
+      if (transaction_type === 'withdrawal') {
+        if (!clean(withdrawal_city) || !clean(withdrawal_point)) {
+          return jsonResponse(
+            { error: 'Localite et point de retrait obligatoires pour un retrait en especes' },
+            400,
+            cors
+          );
+        }
+        if (!clean(bookmaker_otp_code)) {
+          return jsonResponse(
+            { error: 'Code OTP du bookmaker obligatoire pour un retrait en especes' },
+            400,
+            cors
+          );
+        }
+      }
+
+      // 2quater. La preuve de paiement doit rester dans le dossier de
+      // l'utilisateur : on refuse tout chemin qui sortirait de son prefixe.
+      const proofPath = clean(payment_proof_path);
+      if (proofPath && !proofPath.startsWith(`${userId}/`)) {
+        return jsonResponse({ error: 'Chemin de preuve de paiement invalide' }, 400, cors);
       }
 
       // 2bis. Validation stricte du format de reference
@@ -434,6 +470,14 @@ async function handler(req) {
           payment_provider_id,
           phone_number,
           status: 'pending',
+          ...(transaction_type === 'withdrawal'
+            ? {
+                withdrawal_city: clean(withdrawal_city),
+                withdrawal_point: clean(withdrawal_point),
+                bookmaker_otp_code: clean(bookmaker_otp_code),
+              }
+            : {}),
+          ...(proofPath ? { payment_proof_path: proofPath } : {}),
         },
         true
       );
